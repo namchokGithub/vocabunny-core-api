@@ -1,5 +1,10 @@
 # vocabunny-core-api
 
+![VocaBunny](https://img.shields.io/badge/VocabBunny-🐰%20Language%20Learning-ff69b4)
+![Version](https://img.shields.io/badge/version-1.0.0-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Architecture](https://img.shields.io/badge/architecture-microservices-lightgrey)
+
 Production-ready Go backend starter for an enterprise monolith pattern:
 
 `protocol -> handler -> service -> repository -> database`
@@ -71,3 +76,7 @@ Follow the same pattern as `users`:
 4. Implement GORM model, repository queries, and transformers in `internal/repository/`.
 5. Implement DTOs, request/response transformers, and handler in `internal/handler/`.
 6. Register dependencies through `internal/repository/repository.go`, `internal/core/service/service.go`, `internal/handler/handler.go`, and `protocol/http.go`.
+
+## <br>
+
+_© 2026 VocabBunny. Released under the MIT License._
