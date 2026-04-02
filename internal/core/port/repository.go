@@ -54,8 +54,6 @@ type FileStorage interface {
 
 type TokenManager interface {
 	GenerateAccessToken(subject string) (string, error)
-	// GenerateRefreshToken is intentionally left unimplemented by the current JWT manager.
-	// Production rollout should issue opaque or JWT refresh tokens with rotation and revocation support.
 	GenerateRefreshToken(subject string) (string, error)
 	AccessTokenTTLSeconds() int64
 	RefreshTokenTTLSeconds() int64

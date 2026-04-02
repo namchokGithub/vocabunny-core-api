@@ -169,17 +169,22 @@ func (s *authIdentityService) LoginWithPassword(ctx context.Context, input domai
 		return domain.AuthToken{}, helper.Unauthorized("user_inactive", "user is not active", nil)
 	}
 
-	token, err := s.tokenManager.GenerateAccessToken(user.ID.String())
+	accessToken, err := s.tokenManager.GenerateAccessToken(user.ID.String())
 	if err != nil {
 		return domain.AuthToken{}, helper.Internal("generate_token_failed", "failed to generate access token", err)
 	}
 
+	refreshToken, err := s.tokenManager.GenerateRefreshToken(user.ID.String())
+	if err != nil {
+		return domain.AuthToken{}, helper.Internal("generate_token_failed", "failed to generate refresh token", err)
+	}
+
 	return domain.AuthToken{
-		AccessToken:      token,
+		AccessToken:      accessToken,
 		TokenType:        domain.TokenTypeBearer,
 		ExpiresIn:        s.tokenManager.AccessTokenTTLSeconds(),
-		RefreshToken:     "",
-		RefreshExpiresIn: 0,
+		RefreshToken:     refreshToken,
+		RefreshExpiresIn: s.tokenManager.RefreshTokenTTLSeconds(),
 		User:             user,
 	}, nil
 }

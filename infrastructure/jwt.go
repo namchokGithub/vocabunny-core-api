@@ -22,8 +22,14 @@ type JWTManager struct {
 }
 
 type AccessClaims struct {
+	TokenUse    string           `json:"token_use"`
+	Scope       string           `json:"scope,omitempty"`
+	LastLoginAt *jwt.NumericDate `json:"last_login_at,omitempty"`
+	jwt.RegisteredClaims
+}
+
+type RefreshClaims struct {
 	TokenUse string `json:"token_use"`
-	Scope    string `json:"scope,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -40,8 +46,9 @@ func NewJWTManager(cfg configs.JWTConfig) *JWTManager {
 func (m *JWTManager) GenerateAccessToken(subject string) (string, error) {
 	now := time.Now()
 	claims := AccessClaims{
-		TokenUse: domain.TokenUseAccess,
-		Scope:    domain.TokenScopeAccess,
+		TokenUse:    domain.TokenUseAccess,
+		Scope:       domain.TokenScopeAccess,
+		LastLoginAt: jwt.NewNumericDate(now),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.NewString(),
 			Issuer:    m.issuer,
@@ -62,11 +69,22 @@ func (m *JWTManager) AccessTokenTTLSeconds() int64 {
 }
 
 func (m *JWTManager) GenerateRefreshToken(subject string) (string, error) {
-	return "", helper.Internal(
-		"refresh_token_not_implemented",
-		"refresh token issuance is not implemented yet",
-		nil,
-	)
+	now := time.Now()
+	claims := RefreshClaims{
+		TokenUse: domain.TokenUseRefresh,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        uuid.NewString(),
+			Issuer:    m.issuer,
+			Subject:   subject,
+			Audience:  jwt.ClaimStrings{m.audience},
+			ExpiresAt: jwt.NewNumericDate(now.Add(m.refreshTokenTTL)),
+			NotBefore: jwt.NewNumericDate(now),
+			IssuedAt:  jwt.NewNumericDate(now),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(m.secret)
 }
 
 func (m *JWTManager) RefreshTokenTTLSeconds() int64 {
