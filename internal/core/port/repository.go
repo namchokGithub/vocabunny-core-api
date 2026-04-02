@@ -53,8 +53,8 @@ type FileStorage interface {
 }
 
 type TokenManager interface {
-	GenerateAccessToken(subject string) (string, error)
-	GenerateRefreshToken(subject string) (string, error)
+	GenerateAccessToken(subject string, scope string) (string, error)
+	GenerateRefreshToken(subject string, scope string) (string, error)
 	AccessTokenTTLSeconds() int64
 	RefreshTokenTTLSeconds() int64
 }

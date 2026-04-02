@@ -34,18 +34,29 @@ func RegisterHTTP(app *App) {
 	})
 
 	api := e.Group("/api/v1")
-	registerAuthRoutes(api, app)
-	registerIdentityRoutes(api, app)
+	registerAppRoutes(api, app)
+	registerBORoutes(api, app)
 }
 
-func registerAuthRoutes(group *echo.Group, app *App) {
-	auth := group.Group("/auth")
-	auth.POST("/login/password", app.Handlers.AuthIdentity.LoginWithPassword)
+func registerAppRoutes(group *echo.Group, app *App) {
+	appGroup := group.Group("/app")
+
+	auth := appGroup.Group("/auth")
+	auth.POST("/login/password", app.Handlers.AuthIdentity.LoginAppWithPassword)
+
+	appProtected := appGroup.Group("")
+	appProtected.Use(app.Middleware.Authenticate(), app.Middleware.RequireTokenScope(domain.TokenScopeApp))
+	_ = appProtected
 }
 
-func registerIdentityRoutes(group *echo.Group, app *App) {
-	authenticated := group.Group("")
-	authenticated.Use(app.Middleware.Authenticate())
+func registerBORoutes(group *echo.Group, app *App) {
+	boGroup := group.Group("/bo")
+
+	auth := boGroup.Group("/auth")
+	auth.POST("/login/password", app.Handlers.AuthIdentity.LoginBOWithPassword)
+
+	authenticated := boGroup.Group("")
+	authenticated.Use(app.Middleware.Authenticate(), app.Middleware.RequireTokenScope(domain.TokenScopeBO))
 
 	users := authenticated.Group("/users")
 	users.GET("", app.Handlers.User.FindAll, app.Middleware.RequirePermissions(domain.PermissionUserRead))

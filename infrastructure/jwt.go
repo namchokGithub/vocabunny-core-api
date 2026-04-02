@@ -30,6 +30,7 @@ type AccessClaims struct {
 
 type RefreshClaims struct {
 	TokenUse string `json:"token_use"`
+	Scope    string `json:"scope,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -43,11 +44,11 @@ func NewJWTManager(cfg configs.JWTConfig) *JWTManager {
 	}
 }
 
-func (m *JWTManager) GenerateAccessToken(subject string) (string, error) {
+func (m *JWTManager) GenerateAccessToken(subject string, scope string) (string, error) {
 	now := time.Now()
 	claims := AccessClaims{
 		TokenUse:    domain.TokenUseAccess,
-		Scope:       domain.TokenScopeAccess,
+		Scope:       scope,
 		LastLoginAt: jwt.NewNumericDate(now),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.NewString(),
@@ -68,10 +69,11 @@ func (m *JWTManager) AccessTokenTTLSeconds() int64 {
 	return int64(m.accessTokenTTL / time.Second)
 }
 
-func (m *JWTManager) GenerateRefreshToken(subject string) (string, error) {
+func (m *JWTManager) GenerateRefreshToken(subject string, scope string) (string, error) {
 	now := time.Now()
 	claims := RefreshClaims{
 		TokenUse: domain.TokenUseRefresh,
+		Scope:    scope,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.NewString(),
 			Issuer:    m.issuer,
@@ -124,6 +126,7 @@ func (m *JWTManager) Middleware() echo.MiddlewareFunc {
 			}
 
 			c.Set("jwt_subject", claims.Subject)
+			c.Set("jwt_scope", claims.Scope)
 			return next(c)
 		}
 	}

@@ -147,8 +147,12 @@ func (s *authIdentityService) FindAll(ctx context.Context, query domain.AuthIden
 func (s *authIdentityService) LoginWithPassword(ctx context.Context, input domain.PasswordLoginInput) (domain.AuthToken, error) {
 	login := strings.TrimSpace(input.EmailOrUsername)
 	password := strings.TrimSpace(input.Password)
+	scope := strings.TrimSpace(input.Scope)
 	if login == "" || password == "" {
 		return domain.AuthToken{}, helper.BadRequest("invalid_login", "email_or_username and password are required", nil)
+	}
+	if !isValidTokenScope(scope) {
+		return domain.AuthToken{}, helper.BadRequest("invalid_scope", "scope must be app or bo", nil)
 	}
 
 	identity, err := s.authIdentityRepository.FindPasswordIdentityByLogin(ctx, login)
@@ -169,12 +173,12 @@ func (s *authIdentityService) LoginWithPassword(ctx context.Context, input domai
 		return domain.AuthToken{}, helper.Unauthorized("user_inactive", "user is not active", nil)
 	}
 
-	accessToken, err := s.tokenManager.GenerateAccessToken(user.ID.String())
+	accessToken, err := s.tokenManager.GenerateAccessToken(user.ID.String(), scope)
 	if err != nil {
 		return domain.AuthToken{}, helper.Internal("generate_token_failed", "failed to generate access token", err)
 	}
 
-	refreshToken, err := s.tokenManager.GenerateRefreshToken(user.ID.String())
+	refreshToken, err := s.tokenManager.GenerateRefreshToken(user.ID.String(), scope)
 	if err != nil {
 		return domain.AuthToken{}, helper.Internal("generate_token_failed", "failed to generate refresh token", err)
 	}
@@ -226,6 +230,15 @@ func hashPasswordIfNeeded(provider domain.AuthProvider, password string) (string
 func isValidAuthProvider(provider domain.AuthProvider) bool {
 	switch provider {
 	case domain.AuthProviderPassword, domain.AuthProviderGoogle, domain.AuthProviderApple:
+		return true
+	default:
+		return false
+	}
+}
+
+func isValidTokenScope(scope string) bool {
+	switch scope {
+	case domain.TokenScopeApp, domain.TokenScopeBO:
 		return true
 	default:
 		return false
