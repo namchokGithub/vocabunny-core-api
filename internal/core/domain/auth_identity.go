@@ -47,9 +47,20 @@ type PasswordLoginInput struct {
 	Password        string
 }
 
+type TokenType string
+
+const (
+	TokenTypeBearer  TokenType = "Bearer"
+	TokenUseAccess   string    = "access"
+	TokenUseRefresh  string    = "refresh"
+	TokenScopeAccess string    = "api"
+)
+
 type AuthToken struct {
-	AccessToken string
-	TokenType   string
-	ExpiresIn   int64
-	User        User
+	AccessToken      string
+	RefreshToken     string
+	TokenType        TokenType
+	ExpiresIn        int64
+	RefreshExpiresIn int64
+	User             User
 }

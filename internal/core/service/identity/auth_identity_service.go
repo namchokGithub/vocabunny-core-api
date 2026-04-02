@@ -175,10 +175,12 @@ func (s *authIdentityService) LoginWithPassword(ctx context.Context, input domai
 	}
 
 	return domain.AuthToken{
-		AccessToken: token,
-		TokenType:   "Bearer",
-		ExpiresIn:   s.tokenManager.AccessTokenTTLSeconds(),
-		User:        user,
+		AccessToken:      token,
+		TokenType:        domain.TokenTypeBearer,
+		ExpiresIn:        s.tokenManager.AccessTokenTTLSeconds(),
+		RefreshToken:     "",
+		RefreshExpiresIn: 0,
+		User:             user,
 	}, nil
 }
 

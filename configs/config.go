@@ -62,9 +62,11 @@ type RedisConfig struct {
 }
 
 type JWTConfig struct {
-	Secret         string        `envconfig:"JWT_SECRET" default:"change-me"`
-	Issuer         string        `envconfig:"JWT_ISSUER" default:"vocabunny-core-api"`
-	AccessTokenTTL time.Duration `envconfig:"JWT_ACCESS_TOKEN_TTL" default:"24h"`
+	Secret          string        `envconfig:"JWT_SECRET" default:"change-me"`
+	Issuer          string        `envconfig:"JWT_ISSUER" default:"vocabunny-core-api"`
+	Audience        string        `envconfig:"JWT_AUDIENCE" default:"vocabunny-clients"`
+	AccessTokenTTL  time.Duration `envconfig:"JWT_ACCESS_TOKEN_TTL" default:"24h"`
+	RefreshTokenTTL time.Duration `envconfig:"JWT_REFRESH_TOKEN_TTL" default:"720h"`
 }
 
 type StorageConfig struct {

@@ -6,38 +6,50 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/namchokGithub/vocabunny-core-api/configs"
+	"github.com/namchokGithub/vocabunny-core-api/internal/core/domain"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
 )
 
 type JWTManager struct {
-	secret []byte
-	issuer string
-	ttl    time.Duration
+	secret          []byte
+	issuer          string
+	audience        string
+	accessTokenTTL  time.Duration
+	refreshTokenTTL time.Duration
 }
 
 type AccessClaims struct {
-	Subject string `json:"sub"`
+	TokenUse string `json:"token_use"`
+	Scope    string `json:"scope,omitempty"`
 	jwt.RegisteredClaims
 }
 
 func NewJWTManager(cfg configs.JWTConfig) *JWTManager {
 	return &JWTManager{
-		secret: []byte(cfg.Secret),
-		issuer: cfg.Issuer,
-		ttl:    cfg.AccessTokenTTL,
+		secret:          []byte(cfg.Secret),
+		issuer:          cfg.Issuer,
+		audience:        cfg.Audience,
+		accessTokenTTL:  cfg.AccessTokenTTL,
+		refreshTokenTTL: cfg.RefreshTokenTTL,
 	}
 }
 
 func (m *JWTManager) GenerateAccessToken(subject string) (string, error) {
+	now := time.Now()
 	claims := AccessClaims{
-		Subject: subject,
+		TokenUse: domain.TokenUseAccess,
+		Scope:    domain.TokenScopeAccess,
 		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        uuid.NewString(),
 			Issuer:    m.issuer,
 			Subject:   subject,
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(m.ttl)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			Audience:  jwt.ClaimStrings{m.audience},
+			ExpiresAt: jwt.NewNumericDate(now.Add(m.accessTokenTTL)),
+			NotBefore: jwt.NewNumericDate(now),
+			IssuedAt:  jwt.NewNumericDate(now),
 		},
 	}
 
@@ -46,7 +58,19 @@ func (m *JWTManager) GenerateAccessToken(subject string) (string, error) {
 }
 
 func (m *JWTManager) AccessTokenTTLSeconds() int64 {
-	return int64(m.ttl / time.Second)
+	return int64(m.accessTokenTTL / time.Second)
+}
+
+func (m *JWTManager) GenerateRefreshToken(subject string) (string, error) {
+	return "", helper.Internal(
+		"refresh_token_not_implemented",
+		"refresh token issuance is not implemented yet",
+		nil,
+	)
+}
+
+func (m *JWTManager) RefreshTokenTTLSeconds() int64 {
+	return int64(m.refreshTokenTTL / time.Second)
 }
 
 func (m *JWTManager) Middleware() echo.MiddlewareFunc {
@@ -76,6 +100,9 @@ func (m *JWTManager) Middleware() echo.MiddlewareFunc {
 			claims, ok := token.Claims.(*AccessClaims)
 			if !ok {
 				return helper.RespondError(c, helper.Unauthorized("invalid_token", "token claims are invalid", nil))
+			}
+			if claims.TokenUse != domain.TokenUseAccess {
+				return helper.RespondError(c, helper.Unauthorized("invalid_token", "token is not an access token", nil))
 			}
 
 			c.Set("jwt_subject", claims.Subject)

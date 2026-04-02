@@ -286,10 +286,12 @@ func toAuthIdentitiesListResponse(result domain.PageResult[domain.AuthIdentity],
 
 func toLoginResponse(token domain.AuthToken) LoginResponse {
 	return LoginResponse{
-		AccessToken: token.AccessToken,
-		TokenType:   token.TokenType,
-		ExpiresIn:   token.ExpiresIn,
-		User:        toUserResponse(token.User),
+		AccessToken:      token.AccessToken,
+		RefreshToken:     token.RefreshToken,
+		TokenType:        string(token.TokenType),
+		ExpiresIn:        token.ExpiresIn,
+		RefreshExpiresIn: token.RefreshExpiresIn,
+		User:             toUserResponse(token.User),
 	}
 }
 
