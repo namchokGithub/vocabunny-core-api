@@ -45,6 +45,10 @@ func (m *JWTManager) GenerateAccessToken(subject string) (string, error) {
 	return token.SignedString(m.secret)
 }
 
+func (m *JWTManager) AccessTokenTTLSeconds() int64 {
+	return int64(m.ttl / time.Second)
+}
+
 func (m *JWTManager) Middleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {

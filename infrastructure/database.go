@@ -8,7 +8,6 @@ import (
 	"github.com/namchokGithub/vocabunny-core-api/configs"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/port"
-	"github.com/namchokGithub/vocabunny-core-api/internal/repository"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -37,10 +36,6 @@ func NewDatabase(cfg configs.DatabaseConfig) (*Database, error) {
 		Gorm: gormDB,
 		SQL:  sqlDB,
 	}, nil
-}
-
-func (d *Database) AutoMigrate() error {
-	return d.Gorm.AutoMigrate(&repository.RoleModel{}, &repository.UserModel{})
 }
 
 type GormTransactionManager struct {

@@ -1,0 +1,1494 @@
+// ======================================================
+// VocabBunny — CORE DBML
+// ======================================================
+
+// --------------------------------------------------
+// Content / Learning Content
+// --------------------------------------------------
+
+// Sections: หมวดเนื้อหาระดับบนสุด ใช้จัดกลุ่มบทเรียนขนาดใหญ่ เช่น Beginner, Grammar, Vocabulary
+Table tbl_sections {
+  id uuid [pk, note: 'Primary key ของ Section (หมวดใหญ่ของเนื้อหา) ใช้ UUID เพื่อรองรับการขยายระบบในอนาคต']
+  slug text [not null, unique, note: 'ชื่อแบบ URL-friendly ของ section ใช้สำหรับ routing เช่น /sections/{slug}']
+  title text [not null, note: 'ชื่อหมวดที่แสดงให้ผู้ใช้เห็น เช่น Beginner, Grammar, Vocabulary']
+  description text [note: 'คำอธิบายสั้น ๆ ของ section ใช้แสดงในหน้า overview (optional)']
+  order_no int [not null, default: 0, note: 'ลำดับการแสดงผลของ section ยิ่งค่าน้อยยิ่งแสดงก่อน']
+  is_published boolean [not null, default: false, note: 'สถานะการเผยแพร่: false = draft / true = แสดงให้ผู้ใช้ทั่วไป']
+
+  created_by uuid [note: 'user_id ของ admin หรือ content editor']
+  updated_by uuid [note: 'user_id ของ admin หรือ content editor']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง section (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูล section ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบข้อมูลแบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (is_published, order_no)
+  }
+}
+
+// Lessons: บทเรียนภายใน Section ใช้แบ่งเนื้อหาเป็นบท ๆ ก่อนลงลึกระดับ Unit
+Table tbl_lessons {
+  id uuid [pk, note: 'Primary key ของบทเรียน (Lesson) ใช้ UUID เพื่อรองรับการ scale และ future migration']
+  section_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง sections.id บอกว่า lesson นี้อยู่ใน section ใด']
+  slug text [not null, note: 'ชื่อแบบ URL-friendly ใช้สำหรับ routing เช่น /sections/{section}/lessons/{slug} ต้อง unique ภายใน section']
+  title text [not null, note: 'ชื่อบทเรียนที่แสดงบน UI']
+  description text [note: 'คำอธิบายสั้น ๆ ของบทเรียน ใช้แสดงในหน้า list หรือ tooltip (optional)']
+  order_no int [not null, default: 0, note: 'ลำดับการแสดงผลภายใน section ยิ่งน้อยยิ่งแสดงก่อน']
+  is_published boolean [not null, default: false, note: 'สถานะการเผยแพร่: false = draft, true = public']
+
+  created_by uuid [note: 'user_id ของ admin หรือ content editor']
+  updated_by uuid [note: 'user_id ของ admin หรือ content editor']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง lesson (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไข lesson ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบข้อมูลแบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (section_id, slug) [unique]
+    (section_id, is_published, order_no)
+  }
+}
+Ref: tbl_lessons.section_id > tbl_sections.id
+
+// Units: หน่วยการเรียนย่อยภายใน Lesson เป็นระดับที่เชื่อมไปยังชุดคำถาม (Question Sets)
+Table tbl_units {
+  id uuid [pk, note: 'Primary key ของ Unit (หน่วยย่อยภายใน Lesson) ใช้ UUID เพื่อรองรับการขยายระบบ']
+  lesson_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง lessons.id บอกว่า unit นี้อยู่ใน lesson ใด']
+  slug text [not null, note: 'ชื่อแบบ URL-friendly ของ unit ใช้สำหรับ routing เช่น /lessons/{lesson}/units/{slug} ต้อง unique ภายใน lesson เดียวกัน']
+  title text [not null, note: 'ชื่อ unit ที่แสดงให้ผู้ใช้เห็น เช่น Food Vocabulary, Past Tense Basics']
+  description text [note: 'คำอธิบายสั้น ๆ ของ unit ใช้แสดงในหน้า list หรือ overview (optional)']
+  order_no int [not null, default: 0, note: 'ลำดับการแสดงผลของ unit ภายใน lesson ยิ่งค่าน้อยยิ่งแสดงก่อน']
+  is_published boolean [not null, default: false, note: 'สถานะการเผยแพร่: false = draft / true = แสดงให้ผู้ใช้ทั่วไป']
+
+  created_by uuid [note: 'user_id ของ admin หรือ content editor']
+  updated_by uuid [note: 'user_id ของ admin หรือ content editor']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง unit (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูล unit ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบข้อมูลแบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (lesson_id, slug) [unique]
+    (lesson_id, is_published, order_no)
+    (deleted_at)
+  }
+}
+Ref: tbl_units.lesson_id > tbl_lessons.id
+
+// Question Sets: ชุดคำถามภายใน Unit ใช้รวมคำถามหลายข้อเป็นชุดเดียว รองรับ versioning เพื่อแก้ไขเนื้อหาในอนาคตโดยไม่กระทบ progress เดิม
+Table tbl_question_sets {
+  id uuid [pk, note: 'Primary key ของ Question Set ใช้ UUID เพื่อรองรับการขยายระบบและการจัดการ version']
+  unit_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง units.id บอกว่า question set นี้อยู่ใน unit ใด']
+  slug text [not null, note: 'ชื่อแบบ URL-friendly ของ question set ใช้สำหรับ routing เช่น /units/{unit}/sets/{slug}']
+  title text [not null, note: 'ชื่อชุดคำถามที่แสดงให้ผู้ใช้เห็น']
+  description text [note: 'คำอธิบายสั้น ๆ ของชุดคำถาม ใช้แสดงในหน้า list หรือ intro ก่อนเริ่มทำแบบทดสอบ (optional)']
+  order_no int [not null, default: 0, note: 'ลำดับการแสดงผลของ question set ภายใน unit ยิ่งค่าน้อยยิ่งแสดงก่อน']
+  estimated_seconds int [note: 'เวลาที่คาดว่าจะใช้ทำชุดคำถาม (วินาที) ใช้แสดงเป็นข้อมูลให้ผู้ใช้ทราบ (optional)']
+  is_published boolean [not null, default: false, note: 'สถานะการเผยแพร่: false = draft / true = แสดงให้ผู้ใช้ทั่วไป']
+  version int [not null, default: 1, note: 'เวอร์ชันของ question set ใช้รองรับการแก้ไขเนื้อหาโดยไม่กระทบ attempt และ progress เดิม']
+
+  created_by uuid [note: 'user_id ของ admin หรือ content editor']
+  updated_by uuid [note: 'user_id ของ admin หรือ content editor']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง question set (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูล question set ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ question set แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (unit_id, slug, version) [unique]
+    (unit_id, is_published, order_no)
+    (unit_id, slug)
+    (deleted_at)
+  }
+}
+Ref: tbl_question_sets.unit_id > tbl_units.id
+
+// Questions: คำถามแต่ละข้อภายใน Question Set รองรับหลายรูปแบบ (MCQ, เติมคำ, ลากวาง, พิมพ์ตอบ) และใช้เป็นหน่วยพื้นฐานของการทำแบบทดสอบ
+Table tbl_questions {
+  id uuid [pk, note: 'Primary key ของคำถาม ใช้ UUID เพื่อรองรับการขยายระบบและการอ้างอิงใน attempt/analytics']
+  question_set_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง question_sets.id บอกว่าคำถามนี้อยู่ในชุดคำถามใด']
+  type text [not null, note: 'ประเภทของคำถาม เช่น mcq_blank, drag_drop, reorder, typing ใช้กำหนด behavior ฝั่ง UI']
+  question_text text [not null, note: 'ข้อความคำถามหลักที่แสดงให้ผู้ใช้เห็น']
+  blank_position int [note: 'ตำแหน่งช่องว่างใน question_text สำหรับคำถามแบบเติมคำ (optional)']
+  explanation text [note: 'คำอธิบายหรือเฉลย แสดงหลังตอบคำถามหรือในโหมด review (optional)']
+  image_url text [note: 'URL รูปภาพประกอบคำถาม ใช้ช่วยให้เข้าใจง่ายขึ้น (optional)']
+  difficulty int [not null, default: 1, note: 'ระดับความยากของคำถาม ค่า 1–5 ใช้สำหรับ balance และ analytics']
+  order_no int [not null, default: 0, note: 'ลำดับการแสดงผลของคำถามภายใน question set ยิ่งค่าน้อยยิ่งแสดงก่อน']
+  is_active boolean [not null, default: true, note: 'สถานะการใช้งานของคำถาม: false = ปิดใช้งานชั่วคราวโดยไม่ลบข้อมูล']
+
+  created_by uuid [note: 'user_id ของ admin หรือ content editor']
+  updated_by uuid [note: 'user_id ของ admin หรือ content editor']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้างคำถาม (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูลคำถามล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบคำถามแบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (question_set_id, order_no)
+    (question_set_id, is_active)
+    (type)
+    (deleted_at)
+  }
+}
+Ref: tbl_questions.question_set_id > tbl_question_sets.id
+
+// Question Choices: ตัวเลือกคำตอบของคำถาม (ใช้กับ MCQ/เติมคำ) รองรับการจัดลำดับ ตรวจคำตอบถูก-ผิด และ soft delete
+Table tbl_question_choices {
+  id uuid [pk, note: 'Primary key ของตัวเลือกคำตอบ ใช้ UUID เพื่อรองรับการอ้างอิงและการขยายระบบ']
+  question_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง questions.id บอกว่าตัวเลือกนี้เป็นของคำถามใด']
+  choice_text text [not null, note: 'ข้อความตัวเลือกคำตอบที่แสดงให้ผู้ใช้เห็น']
+  choice_order int [not null, default: 0, note: 'ลำดับการแสดงผลของตัวเลือกภายในคำถาม ยิ่งค่าน้อยยิ่งแสดงก่อน']
+  is_correct boolean [not null, default: false, note: 'ระบุว่าตัวเลือกนี้เป็นคำตอบที่ถูกต้องหรือไม่']
+
+  created_by uuid [note: 'user_id ของ admin หรือ content editor ที่สร้างตัวเลือกคำตอบ (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ content editor ที่แก้ไขตัวเลือกคำตอบล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้างตัวเลือกคำตอบ (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูลตัวเลือกคำตอบล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบตัวเลือกคำตอบแบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (question_id, choice_order)
+    (question_id)
+    (deleted_at)
+  }
+}
+Ref: tbl_question_choices.question_id > tbl_questions.id
+
+// Tags: ป้ายกำกับ (tag) สำหรับจัดหมวดหมู่คำถามตามหัวข้อหรือธีม เช่น grammar, food, verb, daily-life
+Table tbl_tags {
+  id uuid [pk, note: 'Primary key ของ tag ใช้ UUID เพื่อรองรับการขยายระบบและการอ้างอิงข้ามตาราง']
+  name text [not null, unique, note: 'ชื่อ tag ต้องไม่ซ้ำ ใช้สำหรับจัดหมวดหมู่และค้นหาคำถาม']
+
+  created_by uuid [note: 'user_id ของ admin หรือ content editor ที่สร้างตัวเลือกคำตอบ (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ content editor ที่แก้ไขตัวเลือกคำตอบล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้างตัวเลือกคำตอบ (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูลตัวเลือกคำตอบล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบตัวเลือกคำตอบแบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (deleted_at)
+  }
+}
+
+// Question Tags: ตารางเชื่อมความสัมพันธ์ระหว่าง Question และ Tag (many-to-many) ใช้สำหรับจัดหมวดหมู่และค้นหาคำถาม
+Table tbl_question_tags {
+  question_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง questions.id บอกว่า tag นี้ผูกกับคำถามใด']
+  tag_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง tags.id บอกว่า tag นี้เป็นประเภทใด']
+
+  created_by uuid [note: 'user_id ของ admin หรือ content editor ที่สร้างความสัมพันธ์ question-tag (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ content editor ที่แก้ไขความสัมพันธ์ question-tag ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้างความสัมพันธ์ question-tag (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขความสัมพันธ์ question-tag ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบความสัมพันธ์ question-tag แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (question_id, tag_id) [pk]
+    (tag_id)
+    (deleted_at)
+  }
+}
+Ref: tbl_question_tags.question_id > tbl_questions.id
+Ref: tbl_question_tags.tag_id > tbl_tags.id
+
+// --------------------------------------------------
+// Identity / Access Control (Auth & RBAC(Role-Based Access Control))
+// --------------------------------------------------
+
+// Users: ข้อมูลผู้ใช้ในระบบ (ทั้งผู้ใช้ทั่วไปและ admin) ใช้สำหรับ identity, permission และ ownership ของ content
+Table tbl_users {
+  id uuid [pk, note: 'Primary key ของผู้ใช้ ใช้ UUID เพื่อรองรับการ scale และ integration ในอนาคต']
+  email text [unique, note: 'อีเมลผู้ใช้ ใช้สำหรับ login หรือ contact (optional สำหรับบาง provider)']
+  username text [unique, note: 'ชื่อผู้ใช้แบบ unique ใช้แสดงผลหรือใช้เป็น public identifier']
+  display_name text [not null, note: 'ชื่อที่แสดงให้ผู้ใช้หรือผู้อื่นเห็นบน UI']
+  avatar_id uuid [note: 'URL รูปโปรไฟล์ของผู้ใช้ (optional)']
+  status user_status [not null, default: 'ACTIVE', note: 'สถานะผู้ใช้: ACTIVE / BANNED / DELETED']
+
+  created_by uuid [note: 'user_id ของ admin หรือ content editor']
+  updated_by uuid [note: 'user_id ของ admin หรือ content editor']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้างผู้ใช้ (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูลผู้ใช้ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบผู้ใช้แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (email)
+    (username)
+    (status)
+    (deleted_at)
+  }
+}
+Ref: tbl_users.avatar_id - tbl_media_assets.id
+Enum user_status {
+  INACTIVE
+  ACTIVE
+  BANNED
+  DELETED
+}
+
+// Roles: ตารางกำหนดบทบาท (Role) ของผู้ใช้ ใช้สำหรับควบคุมสิทธิ์การเข้าถึงระบบ (RBAC)
+Table tbl_roles {
+  id uuid [pk, note: 'Primary key ของ role ใช้ UUID เพื่อรองรับการขยายระบบ']
+  name role_name [not null, unique, note: 'ชื่อ role ของผู้ใช้ เช่น ADMIN, CONTENT_ADMIN, MODERATOR, USER']
+  description text [note: 'คำอธิบาย role เพื่อใช้ใน admin panel หรือเอกสาร (optional)']
+
+  created_by uuid [note: 'user_id ของ admin ที่กำหนดบทบาทให้ผู้ใช้ (optional)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ไขบทบาทผู้ใช้ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง role (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูล role ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ role แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (name)
+    (deleted_at)
+  }
+}
+Ref: tbl_user_roles.user_id > tbl_users.id
+Ref: tbl_user_roles.role_id > tbl_roles.id
+Enum role_name {
+  ADMIN
+  CONTENT_ADMIN
+  MODERATOR
+  USER
+}
+
+// User Roles: ตารางเชื่อมผู้ใช้กับบทบาท (RBAC) ใช้กำหนดสิทธิ์การเข้าถึงระบบ เช่น admin, content_editor, user
+Table tbl_user_roles {
+  user_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง users.id บอกว่าบทบาทนี้เป็นของผู้ใช้ใด']
+  role_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง roles.id บอกว่าผู้ใช้ได้รับบทบาทใด']
+
+  created_by uuid [note: 'user_id ของ admin ที่กำหนดบทบาทให้ผู้ใช้ (optional)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ไขบทบาทผู้ใช้ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่กำหนดบทบาทให้ผู้ใช้ (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูลบทบาทผู้ใช้ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบความสัมพันธ์ user-role แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (user_id, role_id) [pk]
+    (role_id)
+    (deleted_at)
+  }
+}
+
+// Role Permissions: ตารางกำหนดสิทธิ์ (permission) ที่แต่ละ role ทำได้ รองรับการขยาย policy แบบละเอียดในอนาคต
+Table tbl_role_permissions {
+  role_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง roles.id บอกว่าสิทธิ์นี้เป็นของ role ใด']
+  permission_code permission_code [not null, note: 'รหัสสิทธิ์แบบ enum เช่น CONTENT_READ, USER_BAN ใช้เช็คสิทธิ์ในระบบ']
+  scope text [note: 'ขอบเขตของสิทธิ์ (optional) เช่น global, content, analytics']
+
+  created_by uuid [note: 'user_id ของ admin ที่กำหนดสิทธิ์ให้ role (optional)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ไขสิทธิ์ role ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่กำหนดสิทธิ์ให้ role (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูลสิทธิ์ role ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบสิทธิ์ role แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (role_id, permission_code) [pk]
+    (permission_code)
+    (deleted_at)
+  }
+}
+Ref: tbl_role_permissions.role_id > tbl_roles.id
+// Permission Code Enum: สิทธิ์การเข้าถึงระบบ (RBAC)
+Enum permission_code {
+  CONTENT_READ
+  CONTENT_WRITE
+  CONTENT_PUBLISH
+
+  USER_READ
+  USER_BAN
+
+  ANALYTICS_READ
+
+  SYSTEM_CONFIG
+}
+
+// Auth Identities: ข้อมูลตัวตนสำหรับการยืนยันตัวผู้ใช้ รองรับหลาย provider เช่น password, Google, Apple
+Table tbl_auth_identities {
+  id uuid [pk, note: 'Primary key ของ auth identity ใช้ UUID เพื่อรองรับหลาย provider ต่อผู้ใช้']
+  user_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง users.id บอกว่า identity นี้เป็นของผู้ใช้ใด']
+  provider text [not null, note: 'ประเภทผู้ให้บริการยืนยันตัวตน เช่น PASSWORD, GOOGLE, APPLE']
+  provider_user_id text [note: 'รหัสผู้ใช้จาก provider ภายนอก เช่น Google sub / Apple user id (optional)']
+  password_hash text [note: 'รหัสผ่านที่ hash แล้ว ใช้เฉพาะ provider แบบ PASSWORD (optional)']
+
+  created_by uuid [note: 'user_id ของ admin ที่สร้างหรือผูก identity ให้ผู้ใช้ (optional)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ไขข้อมูล identity ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง auth identity (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูล auth identity ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ auth identity แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (provider, provider_user_id) [unique]
+    (user_id, provider) [unique]
+    (deleted_at)
+  }
+}
+Ref: tbl_auth_identities.user_id > tbl_users.id
+
+// --------------------------------------------------
+// Actor / Player Abstraction
+// --------------------------------------------------
+
+// Actor Identity: ตัวแทนผู้เล่นแบบ canonical ใช้เป็นศูนย์กลางผูกข้อมูลทั้งหมด (attempts, streaks, quests, leaderboard) รองรับทั้ง guest และ user
+Table tbl_actor_identity {
+  actor_id uuid [pk, note: 'Primary key ของ actor ใช้เป็น canonical player id สำหรับทุกระบบ']
+  user_id uuid [note: 'Foreign key อ้างอิงไปยัง users.id เมื่อผู้เล่นเป็น account (optional)']
+  guest_id uuid [note: 'Foreign key อ้างอิงไปยัง guests.id เมื่อผู้เล่นเป็น guest (optional)']
+
+  created_by uuid [note: 'user_id ของ admin ที่สร้าง/ย้าย/ผูก actor identity (optional)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ไข actor identity ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง actor identity (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไข actor identity ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ actor identity แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Note: 'Exactly one of user_id or guest_id should be set (enforced in SQL CHECK constraints). Partial unique constraints (WHERE user_id IS NOT NULL / guest_id IS NOT NULL) should be implemented in SQL migrations.'
+
+  Indexes {
+    (user_id)
+    (guest_id)
+    (deleted_at)
+  }
+}
+
+// Guests: ข้อมูลผู้ใช้แบบ guest (อิงตามอุปกรณ์/เบราว์เซอร์) ใช้เก็บ metadata เช่น ชื่อแสดงผล, fingerprint และการใช้งานล่าสุด
+Table tbl_guests {
+  id uuid [pk, note: 'Primary key ของ guest ใช้ UUID เพื่อระบุตัวตนชั่วคราวของผู้ใช้ที่ยังไม่ login']
+  display_name text [not null, note: 'ชื่อที่แสดงสำหรับ guest (อาจสุ่ม/ให้ผู้ใช้ตั้ง)']
+  last_seen_at timestamptz [not null, default: `now()`, note: 'เวลาที่ใช้งานล่าสุด (server time) ใช้อัปเดตเมื่อมี activity']
+
+  created_by uuid [note: 'user_id ของ admin ที่สร้าง/แก้ guest record (โดยปกติ null)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ guest record ล่าสุด (โดยปกติ null)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง guest record (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไข guest record ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ guest แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (last_seen_at)
+    (deleted_at)
+  }
+}
+Ref: tbl_actor_identity.user_id > tbl_users.id
+Ref: tbl_actor_identity.guest_id > tbl_guests.id
+
+// User Devices: อุปกรณ์ที่ผู้เล่นใช้เข้าใช้งาน รองรับทั้ง user และ guest ใช้สำหรับ security, analytics และ device-based features
+Table tbl_user_devices {
+  id uuid [pk, note: 'Primary key ของ device record ใช้ UUID เพื่ออ้างอิงอุปกรณ์']
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุเจ้าของอุปกรณ์ (user หรือ guest)']
+  device_fingerprint text [note: 'ลายนิ้วมือของอุปกรณ์ (hashed) ใช้ระบุอุปกรณ์แบบไม่ผูก PII']
+  device_type text [note: 'ประเภทอุปกรณ์ เช่น web, ios, android, desktop']
+  os_name text [note: 'ชื่อระบบปฏิบัติการ เช่น iOS, Android, Windows, macOS']
+  os_version text [note: 'เวอร์ชันของระบบปฏิบัติการ (optional)']
+  app_version text [note: 'เวอร์ชันแอปหรือเว็บที่ใช้งาน (optional)']
+  last_ip inet [note: 'IP ล่าสุดที่ใช้งานอุปกรณ์นี้ (optional)']
+  last_seen_at timestamptz [not null, default: `now()`, note: 'เวลาที่อุปกรณ์นี้ถูกใช้งานล่าสุด (server time)']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่สร้าง record device (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ system ที่แก้ไขข้อมูล device ล่าสุด']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่บันทึกอุปกรณ์ครั้งแรก (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูลอุปกรณ์ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบอุปกรณ์แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (actor_id) [unique]
+    (device_fingerprint)
+    (actor_id, last_seen_at)
+    (deleted_at)
+  }
+}
+Ref: tbl_user_devices.actor_id > tbl_actor_identity.actor_id
+
+// --------------------------------------------------
+// Media / Assets
+// --------------------------------------------------
+
+// Media Assets: เก็บ metadata ของไฟล์ และรองรับ binary แบบ optional (hybrid storage)
+Table tbl_media_assets {
+  id uuid [pk, note: 'Primary key ของ media asset ใช้ UUID เพื่ออ้างอิงไฟล์/รูปภาพ']
+  owner_actor_id uuid [note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุเจ้าของไฟล์ (optional)']
+  owner_user_id uuid [note: 'Foreign key อ้างอิงไปยัง users.id ระบุเจ้าของไฟล์ (optional)']
+  asset_type media_asset_type [not null, note: 'ประเภท asset เช่น IMAGE, VIDEO, DOCUMENT']
+  purpose media_purpose_type [not null, note: 'วัตถุประสงค์การใช้งานของไฟล์']
+
+  storage_mode storage_mode [not null, default: 'EXTERNAL', note: 'วิธีจัดเก็บไฟล์: EXTERNAL หรือ DATABASE']
+  storage_provider storage_provider [note: 'ผู้ให้บริการจัดเก็บไฟล์ (ใช้เมื่อ storage_mode=EXTERNAL)']
+  bucket text [note: 'bucket/container ของไฟล์ (EXTERNAL only)']
+  object_key text [note: 'path/key ของไฟล์ใน storage (EXTERNAL only)']
+  binary_data bytea [note: 'ข้อมูลไฟล์แบบ binary (DATABASE only, optional)']
+
+  url text [note: 'public/CDN URL ของไฟล์ (optional)']
+  content_type text [note: 'MIME type เช่น image/png']
+  mime_type text [not null, note: 'MIME type ของไฟล์ เช่น image/png, image/webp, application/pdf']
+  file_size_bytes bigint [note: 'ขนาดไฟล์ (bytes)']
+  is_public boolean [not null, default: false, note: 'ไฟล์ public หรือไม่']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่สร้าง asset']
+  updated_by uuid [note: 'user_id ของ admin หรือ system ที่แก้ไข asset ล่าสุด']
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+  deleted_at timestamptz [note: 'เวลาที่ลบอุปกรณ์แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (storage_mode)
+    (storage_provider, bucket, object_key)
+    (owner_actor_id, purpose)
+    (deleted_at)
+  }
+}
+Enum storage_mode {
+  EXTERNAL  // S3 / R2 / GCS / CDN
+  DATABASE  // เก็บ binary ใน DB
+}
+// Media Asset Type Enum: ประเภทของไฟล์ที่ระบบรองรับ
+Enum media_asset_type {
+  IMAGE
+  VIDEO
+  DOCUMENT
+}
+// Media Purpose Type Enum: วัตถุประสงค์ของไฟล์/รูปภาพในระบบ
+Enum media_purpose_type {
+  AVATAR         // รูปโปรไฟล์ผู้ใช้
+  QUESTION_IMAGE // รูปประกอบคำถาม/ชุดคำถาม
+  BADGE_ICON     // ไอคอน badge
+  TROPHY_ICON    // ไอคอน trophy/season
+  BANNER         // รูป banner/cover
+}
+// Storage Provider Enum: ผู้ให้บริการจัดเก็บไฟล์
+Enum storage_provider {
+  S3
+  R2
+  GCS
+  LOCAL
+}
+
+// --------------------------------------------------
+// Attempts / Answers / Learning Progress
+// --------------------------------------------------
+
+// Question Set Attempts: บันทึกการทำแบบทดสอบ (question set) ของผู้เล่น ใช้คำนวณคะแนน, EXP, quest, streak และ analytics
+Table tbl_question_set_attempts {
+  id uuid [pk, note: 'Primary key ของ attempt ใช้ UUID เพื่ออ้างอิงการทำแบบทดสอบแต่ละครั้ง']
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นแบบ canonical']
+  question_set_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง question_sets.id ระบุชุดคำถามที่ทำ']
+  question_set_version int [not null, note: 'เวอร์ชันของ question set ณ เวลาที่ทำ attempt เพื่อรองรับ content versioning']
+  started_at timestamptz [not null, default: `now()`, note: 'เวลาที่เริ่มทำแบบทดสอบ (server time)']
+  finished_at timestamptz [note: 'เวลาที่ทำแบบทดสอบเสร็จสิ้น (server time)']
+  status attempt_status [not null, default: 'FINISHED', note: 'สถานะของ attempt: STARTED / FINISHED / ABANDONED']
+  total_questions int [not null, note: 'จำนวนคำถามทั้งหมดใน attempt นี้']
+  correct_count int [not null, default: 0, note: 'จำนวนคำถามที่ตอบถูก']
+  accuracy numeric [not null, default: 0, note: 'ความแม่นยำของการตอบ (เปอร์เซ็นต์)']
+  earned_exp int [not null, default: 0, note: 'EXP พื้นฐานที่ได้รับจาก attempt นี้']
+  bonus_exp int [not null, default: 0, note: 'EXP โบนัสเพิ่มเติม เช่น จาก EXP Boost หรือ event']
+  client_submission_id uuid [not null, note: 'idempotency key จากฝั่ง client เพื่อป้องกันการ submit ซ้ำ']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่สร้าง/ปรับ attempt (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ system ที่แก้ไข attempt ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง record attempt (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไข record attempt ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ attempt แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (actor_id, client_submission_id) [unique]
+    (actor_id, finished_at)
+    (question_set_id, finished_at)
+    (status)
+    (deleted_at)
+  }
+}
+Ref: tbl_question_set_attempts.actor_id > tbl_actor_identity.actor_id
+Ref: tbl_question_set_attempts.question_set_id > tbl_question_sets.id
+// Attempt Status Enum: สถานะของการทำแบบทดสอบ
+Enum attempt_status {
+  STARTED
+  FINISHED
+  ABANDONED
+}
+
+// Question Attempts: บันทึกการตอบคำถามรายข้อภายใน attempt ใช้สำหรับตรวจคำตอบ, analytics, accuracy และ review
+Table tbl_question_attempts {
+  id uuid [pk, note: 'Primary key ของการตอบคำถามแต่ละข้อ ใช้ UUID เพื่ออ้างอิง event การตอบ']
+  attempt_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง question_set_attempts.id ระบุ attempt ที่คำถามนี้อยู่']
+  question_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง questions.id ระบุคำถามที่ถูกตอบ']
+  selected_choice_id uuid [note: 'Foreign key อ้างอิงไปยัง question_choices.id ระบุตัวเลือกที่ผู้เล่นเลือก (optional สำหรับบางประเภทคำถาม)']
+  is_correct boolean [not null, note: 'ระบุว่าคำตอบที่เลือกถูกต้องหรือไม่']
+  answered_at timestamptz [not null, default: `now()`, note: 'เวลาที่ผู้เล่นตอบคำถาม (server time)']
+  time_spent_ms int [note: 'เวลาที่ใช้ตอบคำถาม (มิลลิวินาที) ใช้สำหรับ analytics/UX tuning (optional)']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่สร้าง/ปรับ record การตอบคำถาม (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ system ที่แก้ไข record การตอบคำถามล่าสุด']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง record การตอบคำถาม (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไข record การตอบคำถามล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ record การตอบคำถามแบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (attempt_id)
+    (question_id, answered_at)
+    (deleted_at)
+  }
+}
+Ref: tbl_question_attempts.attempt_id > tbl_question_set_attempts.id
+Ref: tbl_question_attempts.question_id > tbl_questions.id
+Ref: tbl_question_attempts.selected_choice_id > tbl_question_choices.id
+
+// Actor Progress: สรุปความคืบหน้าของผู้เล่นในระดับ Unit ใช้แสดงสถานะการเรียนและความก้าวหน้า
+Table tbl_actor_progress {
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นแบบ canonical']
+  unit_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง units.id ระบุ unit ที่กำลังติดตาม progress']
+  completed_question_sets int [not null, default: 0, note: 'จำนวน question set ที่ผู้เล่นทำสำเร็จภายใน unit นี้']
+  best_accuracy numeric [not null, default: 0, note: 'ค่า accuracy สูงสุดที่ผู้เล่นเคยทำได้ใน unit นี้']
+  last_played_at timestamptz [note: 'เวลาที่ผู้เล่นทำกิจกรรมล่าสุดใน unit นี้']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่สร้าง/ปรับ progress (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ system ที่แก้ไข progress ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง record progress (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูล progress ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ progress แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (actor_id, unit_id) [pk]
+    (actor_id, last_played_at)
+    (deleted_at)
+  }
+}
+Ref: tbl_actor_progress.actor_id > tbl_actor_identity.actor_id
+Ref: tbl_actor_progress.unit_id > tbl_units.id
+
+// --------------------------------------------------
+// Streak System
+// --------------------------------------------------
+
+// Actor Streaks: ข้อมูลการเล่นต่อเนื่องรายวัน (day streak) ของผู้เล่น ใช้คำนวณรางวัล, quest และ milestone
+Table tbl_actor_streaks {
+  actor_id uuid [pk, not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ใช้เป็นตัวแทนผู้เล่นแบบ canonical']
+  current_streak int [not null, default: 0, note: 'จำนวนวันเล่นติดต่อกันปัจจุบัน']
+  longest_streak int [not null, default: 0, note: 'สถิติจำนวนวันเล่นติดต่อกันสูงสุดที่เคยทำได้']
+  last_active_at timestamptz [note: 'เวลาที่ผู้เล่นทำกิจกรรมล่าสุดที่นับเป็น active day']
+  streak_expires_at timestamptz [note: 'เวลาที่ streak จะหมดอายุ (คำนวณจาก last_active_at + 24 ชั่วโมง)']
+  freeze_balance int [not null, default: 0, note: 'จำนวนไอเท็ม streak freeze (วันลา) ที่ผู้เล่นมีอยู่']
+  last_freeze_used_at timestamptz [note: 'เวลาที่ใช้ freeze ล่าสุด ใช้ enforce policy เช่น ใช้ได้ไม่เกิน 1 ครั้งต่อวัน']
+
+  created_by uuid [note: 'user_id ของ admin ที่ปรับข้อมูล streak (optional)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ไขข้อมูล streak ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง record streak (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูล streak ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบข้อมูล streak แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (streak_expires_at)
+    (deleted_at)
+  }
+}
+Ref: tbl_actor_streaks.actor_id > tbl_actor_identity.actor_id
+
+// Streak Events: ประวัติเหตุการณ์ของระบบ streak ใช้สำหรับ audit/timeline เช่น นับวันสำเร็จ, รีเซ็ต, ใช้ freeze, ได้รางวัล milestone
+Table tbl_streak_events {
+  id uuid [pk, note: 'Primary key ของ event ใช้ UUID เพื่ออ้างอิงเหตุการณ์และรองรับการ audit']
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id บอกว่าเหตุการณ์นี้เป็นของผู้เล่นคนใด']
+  event_type text [not null, note: 'ประเภทเหตุการณ์ เช่น ACTIVE_DAY_EARNED, STREAK_RESET, FREEZE_USED, MILESTONE_REWARDED']
+  occurred_at timestamptz [not null, default: `now()`, note: 'เวลาที่เกิดเหตุการณ์ (server time)']
+  ref_attempt_id uuid [note: 'อ้างอิง attempt ที่ทำให้เกิด event (optional) เช่น question_set_attempts.id']
+  meta jsonb [note: 'ข้อมูลเพิ่มเติม เช่น streak_before/after, milestone days, reward payload (optional)']
+
+  created_by uuid [note: 'user_id ของ admin ที่สร้าง/ปรับ event (optional)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ไข event ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง record event (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไข record event ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ event แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (actor_id, occurred_at)
+    (event_type, occurred_at)
+    (deleted_at)
+  }
+}
+Ref: tbl_streak_events.actor_id > tbl_actor_identity.actor_id
+Ref: tbl_streak_events.ref_attempt_id > tbl_question_set_attempts.id
+
+// Streak Milestones: กำหนด milestone ของระบบ day streak แบบ data-driven ใช้ตั้งรางวัลตามจำนวนวันที่เล่นติดต่อกัน โดยไม่ hardcode ในโค้ด
+Table tbl_streak_milestones {
+  id uuid [pk, note: 'Primary key ของ milestone ใช้ UUID เพื่อรองรับการอ้างอิงและการขยายระบบ']
+  days int [not null, unique, note: 'จำนวนวัน streak ที่ต้องถึงเพื่อรับรางวัล เช่น 3, 7, 14, 30, 60, 100']
+  reward_type text [not null, note: 'ประเภทรางวัล เช่น EXP_BOOST, COINS, ITEM, BADGE']
+  reward_payload jsonb [not null, note: 'รายละเอียดรางวัลแบบยืดหยุ่น เช่น จำนวน coins, item_code, badge_id']
+  is_active boolean [not null, default: true, note: 'สถานะการใช้งาน milestone: true = ใช้งาน, false = ปิดชั่วคราว']
+
+  created_by uuid [note: 'user_id ของ admin ที่สร้างหรือแก้ไข milestone (optional)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ไข milestone ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง milestone (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูล milestone ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ milestone แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (days)
+    (is_active)
+    (deleted_at)
+  }
+}
+
+// Streak Rewards Claimed: บันทึกการรับรางวัล milestone ของผู้เล่น เพื่อป้องกันการรับซ้ำ (double-claim)
+Table tbl_streak_rewards_claimed {
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id บอกว่ารางวัลนี้เป็นของผู้เล่นคนใด']
+  milestone_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง streak_milestones.id บอกว่ารางวัลมาจาก milestone ใด']
+  claimed_at timestamptz [not null, default: `now()`, note: 'เวลาที่ผู้เล่นรับรางวัล milestone (server time)']
+
+  created_by uuid [note: 'user_id ของ admin ที่บันทึก/ปรับสถานะการรับรางวัล (optional)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ไขข้อมูลการรับรางวัลล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง record การรับรางวัล (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไข record การรับรางวัลล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ record การรับรางวัลแบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (actor_id, milestone_id) [pk]
+    (milestone_id)
+    (deleted_at)
+  }
+}
+Ref: tbl_streak_rewards_claimed.actor_id > tbl_actor_identity.actor_id
+Ref: tbl_streak_rewards_claimed.milestone_id > tbl_streak_milestones.id
+
+
+// --------------------------------------------------
+// Quest System (Daily / Progress-based)
+// --------------------------------------------------
+
+// Design goals:
+// - Reset daily quests by "server day" (00:00 server time) => use day_key (YYYY-MM-DD, UTC/server TZ)
+// - Support quest pool, rotation, randomized selection
+// - Track per-actor daily progress + completion + rewards claim
+// - Track monthly trophy progress + awarded trophies + showcase
+
+// Quest Definitions: แม่แบบภารกิจ (quest pool) แบบ data-driven ใช้กำหนดเงื่อนไขและรางวัลของ daily quest โดยไม่ hardcode ในโค้ด
+Table tbl_quest_definitions {
+  id uuid [pk, note: 'Primary key ของ quest definition ใช้ UUID เพื่อรองรับการขยายระบบ']
+  code text [not null, unique, note: 'รหัส quest แบบ unique ใช้เป็น identifier เช่น COMPLETE_3_QUIZZES']
+  title text [not null, note: 'ชื่อ quest ที่แสดงให้ผู้ใช้เห็น']
+  description text [note: 'คำอธิบาย quest เพิ่มเติม (optional)']
+  quest_type quest_type [not null, note: 'ประเภทของ quest ใช้กำหนด logic การนับ progress']
+  target_value int [note: 'ค่าเป้าหมายเชิงตัวเลข เช่น 3 quizzes, 20 correct answers (optional)']
+  target_percent numeric [note: 'ค่าเป้าหมายเชิงเปอร์เซ็นต์ เช่น 80.00 สำหรับ score threshold (optional)']
+  params jsonb [note: 'พารามิเตอร์เสริมแบบยืดหยุ่น เช่น category_scope=unit/tag หรือ filter อื่น ๆ']
+  reward_coins int [not null, default: 0, note: 'จำนวน coins ที่ได้รับเมื่อทำ quest สำเร็จ']
+  reward_exp int [not null, default: 0, note: 'จำนวน EXP ที่ได้รับเมื่อทำ quest สำเร็จ']
+  is_active boolean [not null, default: true, note: 'สถานะการใช้งาน quest: true = ใช้งาน, false = ปิดชั่วคราว']
+
+  created_by uuid [note: 'user_id ของ admin ที่สร้างหรือแก้ไข quest definition (optional)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ไข quest definition ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง quest definition (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูล quest definition ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ quest definition แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (code)
+    (quest_type)
+    (is_active)
+    (deleted_at)
+  }
+}
+// Quest Type Enum: ประเภทของ quest ที่ระบบรองรับ (ใช้กำหนด logic การนับ progress ของ daily quest)
+Enum quest_type {
+  COMPLETE_QUIZZES // ทำแบบทดสอบ (quiz/question set) ให้ครบตามจำนวนที่กำหนด เช่น ทำครบ 3 ครั้งในวันเดียว
+  SCORE_THRESHOLD  // ได้คะแนนถึงเกณฑ์ที่กำหนดใน quiz ใด ๆ เช่น ได้คะแนน ≥ 80%
+  CORRECT_ANSWERS  // ตอบคำถามถูกต้องครบตามจำนวนที่กำหนดภายในวันนั้น เช่น ตอบถูก 20 ข้อ
+  NEW_CATEGORY     // เล่น quiz ในหมวด/ประเภทที่ยังไม่เคยเล่นในวันนั้น เช่น unit หรือ tag ใหม่
+  MAINTAIN_STREAK  // รักษา day streak ไว้ได้ในวันนั้น (streak ไม่ถูกรีเซ็ต)
+}
+
+// Daily Quest Sets: ชุด daily quest ที่เปิดใช้งานในแต่ละวัน (อ้างอิงตาม server day) ใช้ควบคุมว่า quest ใด active ในวันนั้น
+Table tbl_daily_quest_sets {
+  day_key date [pk, note: 'วันที่อ้างอิงของ daily quest ตาม server time (reset เวลา 00:00) เช่น 2026-01-15']
+  strategy daily_quest_strategy [not null, default: 'RANDOM', note: 'กลยุทธ์การเลือก quest ของวันนั้น เช่น RANDOM หรือ FIXED_ROTATION']
+
+  created_by uuid [note: 'user_id ของ admin ที่สร้างหรือ override daily quest set (optional)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ไข daily quest set ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง daily quest set (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไข daily quest set ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ daily quest set แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (strategy)
+    (deleted_at)
+  }
+}
+// Daily Quest Strategy Enum: วิธีการเลือก quest ที่จะ active ในแต่ละวัน
+Enum daily_quest_strategy {
+  RANDOM          // สุ่ม quest จาก quest pool ตามเงื่อนไขที่กำหนด
+  FIXED_ROTATION  // ใช้ลำดับ quest ที่กำหนดไว้ล่วงหน้า (เช่น วนรายสัปดาห์)
+}
+
+// Daily Quest Set Items: รายการ quest ที่ถูกเลือกให้ active ในแต่ละวัน (ปกติ 3–5 quest ต่อวัน) ใช้กำหนดลำดับการแสดงผล
+Table tbl_daily_quest_set_items {
+  day_key date [not null, note: 'Foreign key อ้างอิงไปยัง daily_quest_sets.day_key ระบุวันของชุด quest']
+  quest_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง quest_definitions.id ระบุ quest ที่ถูกเลือกในวันนั้น']
+  order_no int [not null, default: 0, note: 'ลำดับการแสดงผลของ quest ภายในวันนั้น ยิ่งค่าน้อยยิ่งแสดงก่อน']
+
+  created_by uuid [note: 'user_id ของ admin ที่เพิ่ม quest เข้า daily set (optional)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ไขรายการ quest ใน daily set ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้างรายการ daily quest (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขรายการ daily quest ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบรายการ daily quest แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (day_key, quest_id) [pk]
+    (day_key, order_no)
+    (deleted_at)
+  }
+}
+Ref: tbl_daily_quest_set_items.day_key > tbl_daily_quest_sets.day_key
+Ref: tbl_daily_quest_set_items.quest_id > tbl_quest_definitions.id
+
+// Actor Daily Quests: สถานะความคืบหน้าของ daily quest รายผู้เล่นในแต่ละวัน ใช้ติดตาม progress, การสำเร็จ และการรับรางวัล
+Table tbl_actor_daily_quests {
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นแบบ canonical']
+  day_key date [not null, note: 'วันที่อ้างอิงของ daily quest ตาม server time (reset เวลา 00:00)']
+  quest_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง quest_definitions.id ระบุ quest ที่กำลังติดตาม progress']
+  progress_value int [not null, default: 0, note: 'ค่าความคืบหน้าเชิงตัวเลข เช่น จำนวน quiz ที่ทำ หรือจำนวนข้อที่ตอบถูก']
+  progress_percent numeric [note: 'ค่าความคืบหน้าเชิงเปอร์เซ็นต์ เช่น accuracy สูงสุดที่ทำได้ในวันนั้น (optional)']
+  is_completed boolean [not null, default: false, note: 'ระบุว่า quest นี้สำเร็จแล้วหรือยัง']
+  completed_at timestamptz [note: 'เวลาที่ quest ถูกทำสำเร็จ (server time)']
+  reward_claimed boolean [not null, default: false, note: 'ระบุว่าผู้เล่นได้รับรางวัล quest นี้แล้วหรือยัง']
+  claimed_at timestamptz [note: 'เวลาที่ผู้เล่นกดรับรางวัล quest (server time)']
+
+  created_by uuid [note: 'user_id ของ admin ที่สร้าง/แก้ record quest progress (optional)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ไข quest progress ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง record quest progress (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไข record quest progress ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ quest progress แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (actor_id, day_key, quest_id) [pk]
+    (day_key, quest_id)
+    (actor_id, day_key)
+    (deleted_at)
+  }
+}
+Ref: tbl_actor_daily_quests.actor_id > tbl_actor_identity.actor_id
+Ref: tbl_actor_daily_quests.quest_id > tbl_quest_definitions.id
+
+// Quest Events: บันทึกเหตุการณ์ของ daily quest สำหรับ audit, debug และ analytics เช่น อัปเดต progress, ทำสำเร็จ, รับรางวัล
+Table tbl_quest_events {
+  id uuid [pk, note: 'Primary key ของ quest event ใช้ UUID เพื่ออ้างอิงเหตุการณ์และรองรับการ audit']
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นที่เกิดเหตุการณ์']
+  day_key date [not null, note: 'วันที่อ้างอิงของ daily quest ตาม server time (reset เวลา 00:00)']
+  quest_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง quest_definitions.id ระบุ quest ที่เกิดเหตุการณ์']
+  event_type quest_event_type [not null, note: 'ประเภทเหตุการณ์ของ quest เช่น PROGRESS_UPDATED, COMPLETED, CLAIMED']
+  meta jsonb [note: 'ข้อมูลเพิ่มเติมของเหตุการณ์ เช่น progress_before/after, reward payload (optional)']
+
+  created_by uuid [note: 'user_id ของ admin ที่สร้างหรือปรับ event (optional)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ไข event ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่เกิดเหตุการณ์ quest (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไข record quest event ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ quest event แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (actor_id, created_at)
+    (day_key, quest_id)
+    (event_type)
+    (deleted_at)
+  }
+}
+Ref: tbl_quest_events.actor_id > tbl_actor_identity.actor_id
+Ref: tbl_quest_events.quest_id > tbl_quest_definitions.id
+// Quest Event Type Enum: ประเภทของเหตุการณ์ที่เกิดขึ้นใน lifecycle ของ daily quest
+Enum quest_event_type {
+  PROGRESS_UPDATED // มีการอัปเดตค่าความคืบหน้า
+  COMPLETED        // quest ถูกทำสำเร็จ
+  CLAIMED          // ผู้เล่นกดรับรางวัล quest
+}
+
+// --------------------------------------------------
+// Achievement / Trophy / Seasonal Progress
+// --------------------------------------------------
+
+// Trophy Tiers: กำหนดระดับถ้วยรางวัลรายเดือน (Monthly Trophy) แบบ config-driven ใช้ตรวจเงื่อนไขและมอบรางวัลตาม tier
+Table tbl_trophy_tiers {
+  id uuid [pk, note: 'Primary key ของ trophy tier ใช้ UUID เพื่อรองรับการอ้างอิงและการขยายระบบ']
+  code trophy_tier_code [not null, unique, note: 'รหัส tier เช่น BRONZE, SILVER, GOLD, PLATINUM']
+  name text [not null, note: 'ชื่อแสดงของ trophy tier']
+  icon text [note: 'ไอคอนหรือ emoji ของ trophy เช่น 🥉🥈🥇💎']
+  is_active boolean [not null, default: true, note: 'สถานะการใช้งานของ trophy tier']
+
+  req_daily_quests_days int [not null, default: 0, note: 'จำนวนวันที่ต้องทำ daily quest ให้ครบในเดือนนั้น เช่น 15, 22 หรือทุกวัน']
+  req_quiz_attempts int [not null, default: 0, note: 'จำนวนครั้งที่ต้องทำ quiz ในเดือนนั้น เช่น 30, 50, 80, 100']
+  req_min_streak int [not null, default: 0, note: 'จำนวนวัน streak ขั้นต่ำที่ต้องทำได้ เช่น 14 วัน']
+  req_full_month_streak boolean [not null, default: false, note: 'ต้องรักษา streak ครบทั้งเดือนหรือไม่']
+  req_avg_accuracy numeric [note: 'ค่า accuracy เฉลี่ยขั้นต่ำของเดือน เช่น 85.00 (optional)']
+
+  reward_coins int [not null, default: 0, note: 'จำนวน coins ที่ได้เมื่อรับ trophy tier นี้']
+  reward_exp int [not null, default: 0, note: 'จำนวน EXP ที่ได้เมื่อรับ trophy tier นี้']
+  reward_badge_code text [note: 'รหัส badge ที่ได้รับเมื่อผ่าน tier (optional)']
+  reward_avatar_frame_code text [note: 'รหัสกรอบ avatar ที่ได้รับ (optional)']
+
+  created_by uuid [note: 'user_id ของ admin ที่สร้างหรือแก้ไข trophy tier (optional)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ไข trophy tier ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง trophy tier (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูล trophy tier ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ trophy tier แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (code)
+    (is_active)
+    (deleted_at)
+  }
+}
+// Trophy Tier Code Enum: ระดับถ้วยรางวัลรายเดือนของระบบ
+Enum trophy_tier_code {
+  WOOD
+  STONE
+  COPPER
+  IRON
+  SILVER
+  GOLD
+  PLATINUM
+  MYTHRIL
+  ADAMANTITE
+  OBSIDIAN
+  DIAMOND
+}
+
+// Actor Monthly Progress: สรุปความคืบหน้ารายเดือนของผู้เล่น ใช้แสดง UI เดือนปัจจุบันและตรวจเงื่อนไข Trophy
+Table tbl_actor_monthly_progress {
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นแบบ canonical']
+  month_key date [not null, note: 'คีย์เดือน ใช้วันแรกของเดือนตาม server time เช่น 2026-01-01']
+  daily_quests_completed_days int [not null, default: 0, note: 'จำนวนวันที่ทำ daily quest สำเร็จภายในเดือนนั้น']
+  quiz_attempts_count int [not null, default: 0, note: 'จำนวนครั้งที่ทำ quiz ทั้งหมดภายในเดือนนั้น']
+  best_streak_in_month int [not null, default: 0, note: 'จำนวนวัน streak สูงสุดที่ทำได้ภายในเดือนนั้น']
+  full_month_streak_achieved boolean [not null, default: false, note: 'ระบุว่ารักษา streak ครบทั้งเดือนหรือไม่']
+  avg_accuracy numeric [note: 'ค่า accuracy เฉลี่ยของเดือน (optional)']
+
+  created_by uuid [note: 'user_id ของ admin ที่สร้างหรือปรับข้อมูล progress (optional)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ไขข้อมูล progress ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง record monthly progress (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูล monthly progress ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ monthly progress แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (actor_id, month_key) [pk]
+    (month_key)
+    (deleted_at)
+  }
+}
+Ref: tbl_actor_monthly_progress.actor_id > tbl_actor_identity.actor_id
+
+// Actor Trophies: ประวัติการได้รับถ้วยรางวัลรายเดือนของผู้เล่น ใช้เป็น collection/history และแสดงผลในหน้า Profile/Achievement
+Table tbl_actor_trophies {
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นแบบ canonical']
+  month_key date [not null, note: 'คีย์เดือน ใช้วันแรกของเดือนตาม server time เช่น 2026-01-01']
+  trophy_tier_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง trophy_tiers.id ระบุ tier ของถ้วยรางวัลที่ได้รับ']
+  awarded_at timestamptz [not null, default: `now()`, note: 'เวลาที่ระบบมอบถ้วยรางวัลให้ผู้เล่น (server time)']
+  reward_claimed boolean [not null, default: false, note: 'ระบุว่าผู้เล่นกดรับรางวัลของถ้วยนี้แล้วหรือยัง']
+  claimed_at timestamptz [note: 'เวลาที่ผู้เล่นกดรับรางวัลของถ้วย (server time)']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่บันทึกการมอบถ้วย (optional)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ไขข้อมูลถ้วยล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง record การได้รับถ้วย (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไข record การได้รับถ้วยล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ record การได้รับถ้วยแบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (actor_id, month_key, trophy_tier_id) [pk]
+    (actor_id, awarded_at)
+    (deleted_at)
+  }
+}
+Ref: tbl_actor_trophies.actor_id > tbl_actor_identity.actor_id
+Ref: tbl_actor_trophies.trophy_tier_id > tbl_trophy_tiers.id
+
+// Actor Showcase: การตั้งค่า trophy ที่ผู้เล่นเลือกมาแสดงบนหน้า Profile (showcase)
+Table tbl_actor_showcase {
+  actor_id uuid [pk, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นแบบ canonical']
+  showcase_trophy_month_key date [note: 'คีย์เดือนของ trophy ที่เลือกมาแสดง ใช้วันแรกของเดือน เช่น 2026-01-01 (optional)']
+  showcase_trophy_tier_id uuid [note: 'Foreign key อ้างอิงไปยัง trophy_tiers.id ระบุ tier ของ trophy ที่เลือกมาแสดง (optional)']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่ตั้งค่า showcase ให้ผู้เล่น (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ system ที่แก้ไข showcase ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง record showcase (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูล showcase ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ showcase แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (showcase_trophy_tier_id)
+    (deleted_at)
+  }
+}
+Ref: tbl_actor_showcase.actor_id > tbl_actor_identity.actor_id
+Ref: tbl_actor_showcase.showcase_trophy_tier_id > tbl_trophy_tiers.id
+
+// --------------------------------------------------
+// EXP / Level / Stats
+// --------------------------------------------------
+
+// EXP Ledger: บันทึกการเปลี่ยนแปลง EXP ของผู้เล่นแบบ ledger ใช้คำนวณ level, audit และ debug การได้/เสีย EXP
+Table tbl_exp_ledger {
+  id uuid [pk, note: 'Primary key ของ EXP ledger ใช้ UUID เพื่ออ้างอิงรายการเปลี่ยนแปลง EXP']
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นแบบ canonical']
+  source exp_source [not null, note: 'แหล่งที่มาของ EXP เช่น QUIZ, BONUS, ADMIN_ADJUST, EVENT']
+  source_ref_id uuid [note: 'อ้างอิง entity ต้นทางของ EXP เช่น attempt_id, quest_id, admin_action_id (optional)']
+  exp_delta int [not null, note: 'จำนวน EXP ที่เปลี่ยนแปลง อาจเป็นบวกหรือลบ']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่สร้างรายการ EXP (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ system ที่แก้ไขรายการ EXP ล่าสุด']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่บันทึกรายการ EXP (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขรายการ EXP ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบรายการ EXP แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (actor_id, created_at)
+    (source, created_at)
+    (deleted_at)
+  }
+}
+Ref: tbl_exp_ledger.actor_id > tbl_actor_identity.actor_id
+// EXP Source Enum: แหล่งที่มาของการเปลี่ยนแปลง EXP
+Enum exp_source {
+  QUIZ
+  BONUS
+  ADMIN_ADJUST
+  EVENT
+}
+
+// Actor Stats: สถิติโดยรวมของผู้เล่นแบบ state table ใช้เก็บค่า aggregate เช่น EXP รวมและเลเวลปัจจุบัน เพื่ออ่านเร็วใน UI
+Table tbl_actor_stats {
+  actor_id uuid [pk, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นแบบ canonical']
+  total_exp bigint [not null, default: 0, note: 'EXP รวมทั้งหมดของผู้เล่น (คำนวณจาก exp_ledger)']
+  level int [not null, default: 1, note: 'เลเวลปัจจุบันของผู้เล่น คำนวณจาก total_exp ตามสูตรเลเวล']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่สร้าง/ปรับค่า stats (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ system ที่แก้ไขค่า stats ล่าสุด']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง record stats (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่อัปเดตค่า stats ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ stats แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (deleted_at)
+  }
+}
+Ref: tbl_actor_stats.actor_id > tbl_actor_identity.actor_id
+
+// --------------------------------------------------
+// Leaderboard / Ranking
+// --------------------------------------------------
+
+// Leaderboard Weekly: ตารางคะแนนรายสัปดาห์ของผู้เล่น (snapshot) ใช้แสดงอันดับตาม EXP ที่ได้ในสัปดาห์นั้น
+Table tbl_leaderboard_weekly {
+  week_key text [not null, note: 'คีย์สัปดาห์ตาม ISO week และ timezone Asia/Bangkok เช่น 2026-W03']
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นแบบ canonical']
+  display_name text [not null, note: 'ชื่อที่แสดงบน leaderboard ของสัปดาห์นั้น (snapshot ไม่เปลี่ยนย้อนหลัง)']
+  weekly_exp int [not null, default: 0, note: 'จำนวน EXP ที่ผู้เล่นได้รับในสัปดาห์นั้น']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่สร้าง/ปรับข้อมูล leaderboard (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ system ที่อัปเดตข้อมูล leaderboard ล่าสุด']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง record leaderboard (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่อัปเดตข้อมูล leaderboard ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ leaderboard record แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (week_key, actor_id) [pk]
+    (week_key, weekly_exp, updated_at)
+    (deleted_at)
+  }
+}
+Ref: tbl_leaderboard_weekly.actor_id > tbl_actor_identity.actor_id
+
+// --------------------------------------------------
+// Social / Relations
+// --------------------------------------------------
+
+// Actor Relations: ความสัมพันธ์ระหว่างผู้เล่นแบบ simple (FOLLOW / BLOCK) เป็นแบบทางเดียว (directional)
+Table tbl_actor_relations {
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นต้นทาง (ผู้กระทำ)']
+  target_actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นปลายทาง (ผู้ถูกกระทำ)']
+  relation_type actor_relation_type [not null, note: 'ประเภทความสัมพันธ์ระหว่างผู้เล่น']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่สร้าง/เปลี่ยนความสัมพันธ์ (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ system ที่แก้ไขความสัมพันธ์ล่าสุด']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้างความสัมพันธ์ (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่อัปเดตความสัมพันธ์ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบความสัมพันธ์แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (actor_id, target_actor_id) [pk]
+    (target_actor_id)
+    (relation_type)
+    (deleted_at)
+  }
+}
+Ref: tbl_actor_relations.actor_id > tbl_actor_identity.actor_id
+Ref: tbl_actor_relations.target_actor_id > tbl_actor_identity.actor_id
+// Actor Relation Type Enum: ประเภทความสัมพันธ์ระหว่างผู้เล่น
+Enum actor_relation_type {
+  FOLLOW  // ติดตามผู้เล่นอีกฝ่าย
+  BLOCK   // บล็อกผู้เล่นอีกฝ่าย (override ความสัมพันธ์อื่น)
+}
+
+/*
+  // Table tbl_chat_rooms {
+  //   id uuid [pk]
+  //   type text [not null] // dm/group
+  //   created_at timestamptz [not null, default: `now()`]
+  // }
+
+  // Table tbl_chat_members {
+  //   room_id uuid [not null]
+  //   actor_id uuid [not null]
+
+  //   Indexes {
+  //     (room_id, actor_id) [pk]
+  //   }
+  // }
+
+  // Table tbl_chat_messages {
+  //   id uuid [pk]
+  //   room_id uuid [not null]
+  //   actor_id uuid [not null]
+  //   message text [not null]
+  //   created_at timestamptz [not null, default: `now()`]
+
+  //   Indexes {
+  //     (room_id, created_at)
+  //   }
+  // }
+
+  // Ref: tbl_chat_members.room_id > tbl_chat_rooms.id
+  // Ref: tbl_chat_members.actor_id > tbl_actor_identity.actor_id
+  // Ref: tbl_chat_messages.room_id > tbl_chat_rooms.id
+  // Ref:tbl_chat_messages.actor_id > tbl_actor_identity.actor_id
+
+  // -------------------------
+  // Monetization / Orders (Future)
+  // -------------------------
+
+  // Table tbl_products {
+  //   id uuid [pk]
+  //   sku text [not null, unique]
+  //   title text [not null]
+  //   price_cents int [not null]
+  //   currency text [not null, default: 'THB']
+  //   is_active boolean [not null, default: true]
+  //   created_at timestamptz [not null, default: `now()`]
+  // }
+
+  // Table tbl_orders {
+  //   id uuid [pk]
+  //   user_id uuid [not null]
+  //   status text [not null] // pending/paid/cancelled/refunded
+  //   total_cents int [not null]
+  //   created_at timestamptz [not null, default: `now()`]
+  // }
+
+  // Table tbl_order_items {
+  //   order_id uuid [not null]
+  //   product_id uuid [not null]
+  //   qty int [not null, default: 1]
+  //   price_cents int [not null]
+
+  //   Indexes {
+  //     (order_id, product_id) [pk]
+  //   }
+  // }
+
+  // Table tbl_payments {
+  //   id uuid [pk]
+  //   order_id uuid [not null]
+  //   provider text [not null]
+  //   provider_txn_id text
+  //   status text [not null]
+  //   paid_at timestamptz
+  //   created_at timestamptz [not null, default: `now()`]
+  // }
+
+  // Ref: tbl_orders.user_id > tbl_users.id
+  // Ref: tbl_order_items.order_id > tbl_orders.id
+  // Ref: tbl_order_items.product_id > tbl_products.id
+  // Ref: tbl_payments.order_id > tbl_orders.id
+*/
+
+// --------------------------------------------------
+// Economy: Coins / Wallet / Ledger
+// --------------------------------------------------
+
+// Actor Wallets: กระเป๋าเงินของผู้เล่น ใช้เก็บยอด coin ปัจจุบันแบบ cached เพื่ออ่านเร็ว (source of truth คือ coin_ledger)
+Table tbl_actor_wallets {
+  actor_id uuid [pk, not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นแบบ canonical']
+  coin_balance bigint [not null, default: 0, note: 'ยอด coin คงเหลือปัจจุบัน (cached) สำหรับอ่านเร็วใน UI/logic']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่สร้างหรือปรับ wallet (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ system ที่แก้ไข wallet ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง wallet (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่อัปเดตยอด coin ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ wallet แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (deleted_at)
+  }
+}
+Ref: tbl_actor_wallets.actor_id > tbl_actor_identity.actor_id
+
+// Coin Ledger: บันทึกธุรกรรม coin แบบ immutable (source of truth) ใช้สำหรับ audit, rollback และ debug
+Table tbl_coin_ledger {
+  id uuid [pk, note: 'Primary key ของ coin transaction ใช้ UUID เพื่ออ้างอิงธุรกรรมแต่ละครั้ง']
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นแบบ canonical']
+  source_type coin_source_type [not null, note: 'แหล่งที่มาของการเปลี่ยนแปลง coin']
+  source_ref_id uuid [note: 'อ้างอิง entity ต้นทางของ transaction เช่น quest_claim_id, trophy_id, order_id (optional)']
+  coin_delta int [not null, note: 'จำนวน coin ที่เปลี่ยนแปลง (+ ได้รับ, - ใช้จ่าย)']
+  balance_after bigint [note: 'ยอด coin หลังทำ transaction นี้ (ใช้สำหรับ debug/audit เท่านั้น)']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่สร้าง transaction (optional)']
+  updated_by uuid [note: 'user_id ของ admin (ไม่ควรใช้ เพราะ ledger เป็น immutable)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่เกิดธุรกรรม coin (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'ไม่ควรถูกแก้ไข (ledger immutable)']
+  deleted_at timestamptz [note: 'ไม่ควรใช้ (ledger immutable), เก็บไว้เพื่อ consistency เท่านั้น']
+
+  Indexes {
+    (actor_id, created_at)
+    (source_type, created_at)
+    (deleted_at)
+  }
+}
+Ref: tbl_coin_ledger.actor_id > tbl_actor_identity.actor_id
+// Coin Source Type Enum: แหล่งที่มาของการเปลี่ยนแปลง coin
+Enum coin_source_type {
+  DAILY_QUEST
+  MONTHLY_TROPHY
+  STREAK_MILESTONE
+  LEVEL_UP
+  SHOP_PURCHASE
+  GACHA
+  ADMIN_ADJUST
+  EVENT
+  REFUND
+  PROMOTION
+  SYSTEM_ADJUST
+}
+
+// Coin Transactions: ใช้เป็น idempotency key เพื่อป้องกันการได้/เสีย coin ซ้ำจาก action เดิม
+Table tbl_coin_transactions {
+  id uuid [pk, note: 'Primary key ของ coin transaction idempotency record']
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่น']
+  idempotency_key text [not null, note: 'คีย์กันซ้ำ เช่น dailyquest:2026-01-15:questId']
+  source_type coin_source_type [note: 'ประเภทแหล่งที่มาของ coin (optional ใช้ debug/trace)']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่สร้าง record (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่บันทึก idempotency key (server time)']
+
+  Indexes {
+    (actor_id, idempotency_key) [unique]
+  }
+}
+Ref: tbl_coin_transactions.actor_id > tbl_actor_identity.actor_id
+
+// --------------------------------------------------
+// Items / Inventory / Gacha / Shop
+// --------------------------------------------------
+
+// NOTES / DESIGN:
+// - Use a coin ledger (audit-friendly) instead of only a "coins" column.
+// - Inventory supports both stackable consumables and time-limited effects.
+// - Time-limited effects should be represented as "active buffs" with expires_at.
+// - Prices are stored in item catalog; purchases write to ledger + inventory.
+// - actor_identity is assumed to exist (supports guest + user).Enum
+// Example meta payloads (informational):
+// STREAK_FREEZE: { "duration_hours": 24, "auto_consume": true }
+// EXP_BOOST_1H : { "exp_multiplier": 1.5, "duration_minutes": 60, "stacking": "no" }
+// HINT_TOKEN   : { "hint_reduce_choices_to": 2 }
+// DOUBLE_COINS : { "coin_multiplier": 2.0, "duration_hours": 24, "stacking": "no" }
+
+// Items: ไอเท็มในระบบเศรษฐกิจภายในเกม ใช้สำหรับ shop, reward, inventory และ effect ต่าง ๆ
+Table tbl_items {
+  id uuid [pk, note: 'Primary key ของ item ใช้ UUID เพื่อรองรับการอ้างอิงและการขยายระบบ']
+  key text [not null, unique, note: 'รหัสไอเท็มแบบ unique ใช้เป็น identifier เช่น STREAK_FREEZE, EXP_BOOST_50']
+  name text [not null, note: 'ชื่อไอเท็มที่แสดงให้ผู้ใช้เห็น']
+  rarity int [not null, note: 'ระดับความหายากของไอเท็ม (เช่น 1=common, 2=uncommon, 3=rare, 4=epic, 5=legendary)']
+  meta jsonb [note: 'ข้อมูลเพิ่มเติมของไอเท็มแบบยืดหยุ่น เช่น effect, duration, stack_policy']
+
+  created_by uuid [note: 'user_id ของ admin ที่สร้างหรือแก้ไข item (optional)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ไข item ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง item (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไขข้อมูล item ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ item แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (key)
+    (rarity)
+    (deleted_at)
+  }
+}
+Ref: tbl_items.created_by > tbl_users.id
+Ref: tbl_items.updated_by > tbl_users.id
+
+// Item Catalog: รายการสินค้าในร้าน ใช้กำหนดราคา coin, ประเภทไอเท็ม และ effect ที่จะได้รับ
+Table tbl_item_catalog {
+  id uuid [pk, note: 'Primary key ของ item catalog ใช้ UUID เพื่ออ้างอิงสินค้าในร้าน']
+  sku text [not null, unique, note: 'รหัสสินค้าแบบ business key เช่น STREAK_FREEZE, EXP_BOOST_1H']
+  name text [not null, note: 'ชื่อไอเท็มที่แสดงในร้าน']
+  description text [note: 'คำอธิบายไอเท็ม (optional)']
+  item_type item_type [not null, note: 'ประเภทไอเท็ม เช่น CONSUMABLE, TIMED_BUFF']
+  price_coins int [not null, note: 'ราคาสินค้าเป็น coin เช่น 50, 100, 150']
+  is_active boolean [not null, default: true, note: 'ระบุว่าสินค้านี้ยังเปิดขายอยู่หรือไม่']
+  meta jsonb [note: 'ข้อมูล effect ของไอเท็ม เช่น duration, percent, stack_policy']
+
+  created_by uuid [note: 'user_id ของ admin ที่สร้างหรือแก้ไขสินค้า (optional)']
+  updated_by uuid [note: 'user_id ของ admin ที่แก้ไขสินค้าในร้านล่าสุด']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง item catalog (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไข item catalog ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบสินค้าแบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (sku)
+    (is_active)
+    (item_type)
+    (deleted_at)
+  }
+}
+// Item Type Enum: ประเภทของไอเท็มในร้าน
+Enum item_type {
+  CONSUMABLE   // ใช้แล้วหมดไป เช่น Hint Token
+  TIMED_BUFF   // มีระยะเวลา เช่น EXP Boost, Double Coins
+}
+
+// Actor Inventory: คลังไอเท็มของผู้เล่น ใช้เก็บจำนวนไอเท็มที่ผู้เล่นมีอยู่ในปัจจุบัน
+Table tbl_actor_inventory {
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นแบบ canonical']
+  item_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง items.id ระบุไอเท็มที่ผู้เล่นถือครอง']
+  qty int [not null, default: 0, note: 'จำนวนไอเท็มที่ผู้เล่นมีอยู่ (ต้องไม่ติดลบ)']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่สร้างหรือปรับ inventory (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ system ที่แก้ไข inventory ล่าสุด']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง record inventory (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่อัปเดต inventory ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ inventory แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (actor_id, item_id) [pk]
+    (item_id)
+    (deleted_at)
+  }
+}
+Ref: tbl_actor_inventory.item_id > tbl_item_catalog.id
+Ref: tbl_actor_inventory.actor_id > tbl_actor_identity.actor_id
+Ref: tbl_actor_inventory.item_id > tbl_items.id
+
+// Gacha Rolls: บันทึกการสุ่มไอเท็ม (ฟรีรายวันหรือใช้ coins) ใช้เป็นประวัติและ audit
+Table tbl_gacha_rolls {
+  id uuid [pk, note: 'Primary key ของ gacha roll ใช้ UUID เพื่ออ้างอิงการสุ่มแต่ละครั้ง']
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นที่ทำการสุ่ม']
+  roll_type gacha_roll_type [not null, note: 'ประเภทการสุ่ม เช่น FREE_DAILY หรือ PAID']
+  cost_coins int [not null, default: 0, note: 'จำนวน coins ที่ใช้ในการสุ่ม (0 = ฟรี)']
+  result_items jsonb [not null, note: 'ผลลัพธ์การสุ่มไอเท็มแบบ snapshot เช่น item_id, qty, rarity']
+  /*
+    [
+      {
+        "item_id": "uuid-1",
+        "key": "STREAK_FREEZE",
+        "qty": 1,
+        "rarity": 3
+      }
+    ]
+  */
+  rolled_at timestamptz [not null, default: `now()`, note: 'เวลาที่ทำการสุ่ม (server time)']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่สร้าง record gacha roll (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ system ที่แก้ไข record gacha roll ล่าสุด']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง record gacha roll']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไข record gacha roll ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ gacha roll แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (actor_id, rolled_at)
+    (roll_type, rolled_at)
+    (deleted_at)
+  }
+}
+Ref: tbl_gacha_rolls.actor_id > tbl_actor_identity.actor_id
+// Gacha Roll Type Enum: ประเภทการสุ่มไอเท็ม
+Enum gacha_roll_type {
+  FREE_DAILY  // สุ่มฟรีรายวัน (จำกัดวันละ 1 ครั้ง)
+  PAID        // สุ่มโดยใช้ coins
+}
+
+// Shop Orders: ใบสั่งซื้อสินค้าในร้านของผู้เล่น ใช้คู่กับ shop_order_items และ coin_ledger
+Table tbl_shop_orders {
+  id uuid [pk, note: 'Primary key ของคำสั่งซื้อสินค้า ใช้ UUID เพื่ออ้างอิง order']
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นที่ทำการสั่งซื้อ']
+  status shop_order_status [not null, default: 'COMPLETED', note: 'สถานะของคำสั่งซื้อ']
+  total_coins int [not null, note: 'จำนวน coin รวมของคำสั่งซื้อ (เก็บเป็นบวก)']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่สร้าง order (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ system ที่แก้ไข order ล่าสุด']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้างคำสั่งซื้อ (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่อัปเดตคำสั่งซื้อล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ order แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (actor_id, created_at)
+    (status)
+    (deleted_at)
+  }
+}
+Ref: tbl_shop_orders.actor_id > tbl_actor_identity.actor_id
+// Shop Order Status Enum: สถานะของคำสั่งซื้อในร้าน
+Enum shop_order_status {
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+// Shop Order Items: รายการสินค้าแต่ละชิ้นภายในคำสั่งซื้อ ใช้เป็น snapshot ราคา/จำนวน ณ เวลาซื้อ
+Table tbl_shop_order_items {
+  order_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง shop_orders.id ระบุคำสั่งซื้อหลัก']
+  item_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง item_catalog.id ระบุสินค้าที่ถูกซื้อ']
+  quantity int [not null, default: 1, note: 'จำนวนสินค้าที่ซื้อในรายการนี้']
+  unit_price_coins int [not null, note: 'ราคา coin ต่อหน่วยของสินค้า (snapshot ณ เวลาซื้อ)']
+  line_total_coins int [not null, note: 'ราคารวมของรายการนี้ = unit_price_coins × quantity']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่สร้างรายการสินค้าใน order (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ system ที่แก้ไขรายการสินค้าใน order ล่าสุด']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง order item (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไข order item ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ order item แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (order_id, item_id) [pk]
+    (item_id)
+    (deleted_at)
+  }
+}
+Ref: tbl_shop_order_items.order_id > tbl_shop_orders.id
+Ref: tbl_shop_order_items.item_id > tbl_item_catalog.id
+
+// Shop Purchase Requests: ใช้เป็น idempotency สำหรับการสั่งซื้อ ป้องกันการตัด coin ซ้ำจากการ submit ซ้ำของ client
+Table tbl_shop_purchase_requests {
+  id uuid [pk, note: 'Primary key ของ purchase request ใช้ UUID เพื่ออ้างอิงคำขอสั่งซื้อ']
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นที่ทำการสั่งซื้อ']
+  client_request_id uuid [not null, note: 'idempotency key จากฝั่ง client เพื่อกันการ submit ซ้ำ']
+  order_id uuid [note: 'Foreign key อ้างอิงไปยัง shop_orders.id ระบุ order ที่ถูกสร้าง (nullable จนกว่าจะสร้างสำเร็จ)']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่สร้างรายการสินค้าใน order (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ system ที่แก้ไขรายการสินค้าใน order ล่าสุด']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง order item (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไข order item ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ order item แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (actor_id, client_request_id) [unique]
+  }
+}
+Ref: tbl_shop_purchase_requests.actor_id > tbl_actor_identity.actor_id
+Ref: tbl_shop_purchase_requests.order_id > tbl_shop_orders.id
+
+// Stackable items (e.g., Freeze, Hint Token)
+// Timed buffs typically should NOT be stored here as "quantity with expires_at" (ambiguous),
+// better store active effects in actor_buffs.
+// However, you can still keep unused buff items here as quantity.
+
+// Item Consumptions: บันทึกการใช้ไอเท็มของผู้เล่นแบบ audit/event log ใช้ตรวจสอบการใช้งานและ debug
+Table tbl_item_consumptions {
+  id uuid [pk, note: 'Primary key ของการใช้ไอเท็ม ใช้ UUID เพื่ออ้างอิงเหตุการณ์การใช้งาน']
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นที่ใช้ไอเท็ม']
+  item_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง items.id ระบุไอเท็มที่ถูกใช้']
+  quantity int [not null, default: 1, note: 'จำนวนไอเท็มที่ถูกใช้ในเหตุการณ์นี้']
+  reason item_consumption_reason [note: 'สาเหตุการใช้ไอเท็ม เช่น STREAK_AUTO_FREEZE, USER_ACTION_HINT']
+  ref_attempt_id uuid [note: 'อ้างอิง attempt ที่เกี่ยวข้อง เช่น question_set_attempts.id (optional)']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่บันทึกการใช้ไอเท็ม (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ system ที่แก้ไข record ล่าสุด']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่บันทึกการใช้ไอเท็ม (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไข record ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ record แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (actor_id, created_at)
+    (item_id, created_at)
+    (deleted_at)
+  }
+}
+Ref: tbl_item_consumptions.item_id > tbl_items.id
+Ref: tbl_item_consumptions.actor_id > tbl_actor_identity.actor_id
+Ref: tbl_item_consumptions.item_id > tbl_item_catalog.id
+Ref: tbl_item_consumptions.ref_attempt_id > tbl_question_set_attempts.id
+// Item Consumption Reason Enum: สาเหตุการใช้ไอเท็ม
+Enum item_consumption_reason {
+  STREAK_AUTO_FREEZE // ใช้ไอเท็มวันลาอัตโนมัติเมื่อ streak ใกล้หมด
+  USER_ACTION_HINT  // ผู้ใช้กดใช้ Hint ด้วยตนเอง
+  QUEST_REWARD_USE  // ใช้ไอเท็มที่ได้จากรางวัล quest
+  SYSTEM_EFFECT     // ใช้งานโดยระบบ (buff/automation)
+}
+
+// --------------------------------------------------
+// Buffs / Effects
+// --------------------------------------------------
+
+// Actor Buffs: บัฟของผู้เล่นที่มีระยะเวลาตามเวลาจริง (real-time) เช่น EXP Boost 1 ชั่วโมง, Double Coins 24 ชั่วโมง
+Table tbl_actor_buffs {
+  id uuid [pk, note: 'Primary key ของ buff ใช้ UUID เพื่ออ้างอิงบัฟแต่ละครั้ง']
+  actor_id uuid [not null, note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นแบบ canonical']
+  buff_type buff_type [not null, note: 'ประเภทของบัฟ เช่น EXP_BOOST, DOUBLE_COINS']
+  source_item_id uuid [note: 'Foreign key อ้างอิงไปยัง item_catalog.id ระบุไอเท็มต้นทางของบัฟ (optional)']
+  multiplier numeric [not null, default: 1.0, note: 'ตัวคูณของบัฟ เช่น 1.5 สำหรับ EXP, 2.0 สำหรับ coins']
+  started_at timestamptz [not null, default: `now()`, note: 'เวลาที่บัฟเริ่มทำงาน (server time)']
+  expires_at timestamptz [not null, note: 'เวลาที่บัฟหมดอายุ (server time)']
+  is_active boolean [not null, default: true, note: 'สถานะบัฟปัจจุบัน (true = ยังใช้งานอยู่)']
+  meta jsonb [note: 'ข้อมูลเพิ่มเติมของบัฟ เช่น stack_policy, source_context (optional)']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่สร้างบัฟ (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ system ที่แก้ไขบัฟล่าสุด']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่สร้าง record buff (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไข record buff ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ buff แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (actor_id, is_active)
+    (actor_id, expires_at)
+    (buff_type, is_active)
+    (deleted_at)
+  }
+}
+Ref: tbl_actor_buffs.actor_id > tbl_actor_identity.actor_id
+Ref: tbl_actor_buffs.source_item_id > tbl_item_catalog.id
+// Buff Type Enum: ประเภทของบัฟที่มีผลตามเวลาจริง
+Enum buff_type {
+  EXP_BOOST     // เพิ่ม EXP ที่ได้รับจากกิจกรรมต่าง ๆ
+  DOUBLE_COINS  // เพิ่ม coins ที่ได้รับจาก quest/reward
+
+  STREAK_PROTECT   // ป้องกัน streak reset ชั่วคราว (แทน/เสริม freeze item)
+  QUIZ_SPEED       // ลดเวลา/เพิ่มเวลาโบนัสต่อข้อ (UX/gameplay)
+  ACCURACY_BOOST   // เพิ่มคะแนน/accuracy floor (event-based)
+}
+
+// Prevent stacking rules (optional helper):
+// E.g., only 1 active exp_boost per actor, only 1 active double_coins per actor.
+// Enforce via SQL partial unique index in migrations (DBML cannot fully express partial unique).
+Table tbl_buff_activation_requests {
+  id uuid [pk]
+  actor_id uuid [not null]
+  buff_type text [not null]
+  client_request_id uuid [not null]
+  created_at timestamptz [not null, default: `now()`]
+
+  Indexes {
+    (actor_id, buff_type, client_request_id) [unique]
+  }
+}
+Ref: tbl_buff_activation_requests.actor_id > tbl_actor_identity.actor_id
+
+// --------------------------------------------------
+// Analytics / Events / Telemetry
+// --------------------------------------------------
+
+// Analytics Events: บันทึกเหตุการณ์เชิงพฤติกรรม/การใช้งาน (analytics/observability) เพื่อทำ funnel, retention, debug UX ไม่ใช่ source of truth ของ logic หลัก
+Table tbl_analytics_events {
+  id uuid [pk, note: 'Primary key ของ analytics event ใช้ UUID เพื่ออ้างอิงเหตุการณ์แต่ละครั้ง']
+  actor_id uuid [note: 'Foreign key อ้างอิงไปยัง actor_identity.actor_id ระบุผู้เล่นที่เกี่ยวข้องกับเหตุการณ์ (optional)']
+  event_name text [not null, note: 'ชื่อเหตุการณ์ เช่น quiz_started, quiz_finished, item_used, gacha_rolled']
+  properties jsonb [note: 'ข้อมูลเพิ่มเติมของเหตุการณ์ เช่น question_set_id, device, latency_ms, ui_version (optional)']
+  occurred_at timestamptz [not null, default: `now()`, note: 'เวลาที่เกิดเหตุการณ์ (server time)']
+
+  created_by uuid [note: 'user_id ของ admin หรือ system ที่สร้าง event (optional)']
+  updated_by uuid [note: 'user_id ของ admin หรือ system ที่แก้ไข event ล่าสุด (optional)']
+  created_at timestamptz [not null, default: `now()`, note: 'เวลาที่บันทึก event ลงฐานข้อมูล (server time)']
+  updated_at timestamptz [not null, default: `now()`, note: 'เวลาที่แก้ไข record event ล่าสุด']
+  deleted_at timestamptz [note: 'เวลาที่ลบ event แบบ soft delete หากเป็น NULL หมายถึงยังใช้งานอยู่']
+
+  Indexes {
+    (event_name, occurred_at)
+    (actor_id, occurred_at)
+    (deleted_at)
+  }
+}
+Ref: tbl_analytics_events.actor_id > tbl_actor_identity.actor_id
+
+// ======================================================
+// End of file
+// ======================================================

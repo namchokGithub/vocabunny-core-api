@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"gorm.io/gorm"
-
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/port"
+	identityrepo "github.com/namchokGithub/vocabunny-core-api/internal/repository/identity"
+	"gorm.io/gorm"
 )
 
 type Dependencies struct {
@@ -11,11 +11,19 @@ type Dependencies struct {
 }
 
 type Repository struct {
-	User port.UserRepository
+	User         port.UserRepository
+	Role         port.RoleRepository
+	AuthIdentity port.AuthIdentityRepository
 }
 
 func NewRepository(deps Dependencies) *Repository {
+	identityRepositories := identityrepo.NewRepository(identityrepo.Dependencies{
+		DB: deps.DB,
+	})
+
 	return &Repository{
-		User: NewUserRepository(deps.DB),
+		User:         identityRepositories.User,
+		Role:         identityRepositories.Role,
+		AuthIdentity: identityRepositories.AuthIdentity,
 	}
 }

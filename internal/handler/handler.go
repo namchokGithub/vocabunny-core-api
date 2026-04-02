@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/service"
+	identityhandler "github.com/namchokGithub/vocabunny-core-api/internal/handler/identity"
 )
 
 type Dependencies struct {
@@ -11,11 +12,20 @@ type Dependencies struct {
 }
 
 type Handler struct {
-	User *UserHandler
+	User         *identityhandler.UserHandler
+	Role         *identityhandler.RoleHandler
+	AuthIdentity *identityhandler.AuthIdentityHandler
 }
 
 func NewHandler(deps Dependencies) *Handler {
+	identityHandlers := identityhandler.NewHandler(identityhandler.Dependencies{
+		Services:  deps.Services,
+		Validator: deps.Validator,
+	})
+
 	return &Handler{
-		User: NewUserHandler(deps.Services.User),
+		User:         identityHandlers.User,
+		Role:         identityHandlers.Role,
+		AuthIdentity: identityHandlers.AuthIdentity,
 	}
 }

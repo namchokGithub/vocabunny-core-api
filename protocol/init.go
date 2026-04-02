@@ -13,6 +13,7 @@ import (
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/service"
 	"github.com/namchokGithub/vocabunny-core-api/internal/handler"
+	appmiddleware "github.com/namchokGithub/vocabunny-core-api/internal/middleware"
 	"github.com/namchokGithub/vocabunny-core-api/internal/repository"
 	"github.com/namchokGithub/vocabunny-core-api/pkg/logger"
 	"github.com/redis/go-redis/v9"
@@ -21,18 +22,19 @@ import (
 )
 
 type App struct {
-	Config    configs.Config
-	Echo      *echo.Echo
-	Logger    *slog.Logger
-	DB        *gorm.DB
-	Redis     *redis.Client
-	Cron      *cron.Cron
-	Handlers  *handler.Handler
-	Services  *service.Service
-	Repo      *repository.Repository
-	JWT       *infrastructure.JWTManager
-	Websocket *infrastructure.WebsocketManager
-	shutdown  func(context.Context) error
+	Config     configs.Config
+	Echo       *echo.Echo
+	Logger     *slog.Logger
+	DB         *gorm.DB
+	Redis      *redis.Client
+	Cron       *cron.Cron
+	Handlers   *handler.Handler
+	Middleware *appmiddleware.Middleware
+	Services   *service.Service
+	Repo       *repository.Repository
+	JWT        *infrastructure.JWTManager
+	Websocket  *infrastructure.WebsocketManager
+	shutdown   func(context.Context) error
 }
 
 func Initialize(ctx context.Context, cfg configs.Config) (*App, error) {
@@ -53,22 +55,31 @@ func Initialize(ctx context.Context, cfg configs.Config) (*App, error) {
 		return nil, fmt.Errorf("init storage: %w", err)
 	}
 
+	jwtManager := infrastructure.NewJWTManager(cfg.JWT)
+
 	repositories := repository.NewRepository(repository.Dependencies{
 		DB: db.Gorm,
 	})
 
 	services := service.NewService(service.Dependencies{
 		Repositories: &service.RepositoryPorts{
-			User: repositories.User,
+			User:         repositories.User,
+			Role:         repositories.Role,
+			AuthIdentity: repositories.AuthIdentity,
 		},
-		TxManager: infrastructure.NewTransactionManager(db.Gorm),
-		Storage:   storage,
+		TxManager:    infrastructure.NewTransactionManager(db.Gorm),
+		Storage:      storage,
+		TokenManager: jwtManager,
 	})
 
 	validator := helper.NewRequestValidator()
 	handlers := handler.NewHandler(handler.Dependencies{
 		Services:  services,
 		Validator: validator,
+	})
+	middlewares := appmiddleware.New(appmiddleware.Dependencies{
+		JWTManager:  jwtManager,
+		UserService: services.User,
 	})
 
 	e := echo.New()
@@ -86,21 +97,21 @@ func Initialize(ctx context.Context, cfg configs.Config) (*App, error) {
 	cronScheduler := infrastructure.NewCron()
 	cronScheduler.Start()
 
-	jwtManager := infrastructure.NewJWTManager(cfg.JWT)
 	websocketManager := infrastructure.NewWebsocketManager()
 
 	app := &App{
-		Config:    cfg,
-		Echo:      e,
-		Logger:    appLogger,
-		DB:        db.Gorm,
-		Redis:     redisClient,
-		Cron:      cronScheduler,
-		Handlers:  handlers,
-		Services:  services,
-		Repo:      repositories,
-		JWT:       jwtManager,
-		Websocket: websocketManager,
+		Config:     cfg,
+		Echo:       e,
+		Logger:     appLogger,
+		DB:         db.Gorm,
+		Redis:      redisClient,
+		Cron:       cronScheduler,
+		Handlers:   handlers,
+		Middleware: middlewares,
+		Services:   services,
+		Repo:       repositories,
+		JWT:        jwtManager,
+		Websocket:  websocketManager,
 	}
 
 	RegisterHTTP(app)
