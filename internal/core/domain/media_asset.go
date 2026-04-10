@@ -55,6 +55,24 @@ type MediaAsset struct {
 	AuditFields
 }
 
+type MediaAssetCreateInput struct {
+	OwnerActorID    *uuid.UUID
+	OwnerUserID     *uuid.UUID
+	AssetType       MediaAssetType
+	Purpose         MediaPurposeType
+	StorageMode     StorageMode
+	StorageProvider *StorageProvider
+	Bucket          *string
+	ObjectKey       *string
+	BinaryData      []byte
+	URL             *string
+	ContentType     *string
+	MimeType        string
+	FileSizeBytes   *int64
+	IsPublic        bool
+	ActorID         string
+}
+
 type MediaAssetUpdateInput struct {
 	ID              uuid.UUID
 	OwnerActorID    EntityField[*uuid.UUID]

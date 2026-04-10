@@ -18,6 +18,7 @@ type Handler struct {
 	Question       *QuestionHandler
 	QuestionChoice *QuestionChoiceHandler
 	Tag            *TagHandler
+	MediaAsset     *MediaAssetHandler
 }
 
 func NewHandler(deps Dependencies) *Handler {
@@ -29,5 +30,6 @@ func NewHandler(deps Dependencies) *Handler {
 		Question:       NewQuestionHandler(deps.Services.Question),
 		QuestionChoice: NewQuestionChoiceHandler(deps.Services.QuestionChoice),
 		Tag:            NewTagHandler(deps.Services.Tag),
+		MediaAsset:     NewMediaAssetHandler(deps.Services.MediaAsset),
 	}
 }

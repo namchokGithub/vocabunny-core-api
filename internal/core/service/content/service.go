@@ -10,6 +10,7 @@ type Dependencies struct {
 	QuestionRepository       port.QuestionRepository
 	QuestionChoiceRepository port.QuestionChoiceRepository
 	TagRepository            port.TagRepository
+	MediaAssetRepository     port.MediaAssetRepository
 	TxManager                port.TransactionManager
 }
 
@@ -21,6 +22,7 @@ type Service struct {
 	Question       port.QuestionService
 	QuestionChoice port.QuestionChoiceService
 	Tag            port.TagService
+	MediaAsset     port.MediaAssetService
 }
 
 func NewService(deps Dependencies) *Service {
@@ -58,6 +60,10 @@ func NewService(deps Dependencies) *Service {
 		Tag: NewTagService(TagServiceDependencies{
 			TagRepository: deps.TagRepository,
 			TxManager:     deps.TxManager,
+		}),
+		MediaAsset: NewMediaAssetService(MediaAssetServiceDependencies{
+			MediaAssetRepository: deps.MediaAssetRepository,
+			TxManager:            deps.TxManager,
 		}),
 	}
 }

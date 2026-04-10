@@ -90,3 +90,11 @@ type TagService interface {
 	FindByID(ctx context.Context, id uuid.UUID) (domain.Tag, error)
 	FindAll(ctx context.Context, query domain.TagQuery) (domain.PageResult[domain.Tag], error)
 }
+
+type MediaAssetService interface {
+	Create(ctx context.Context, input domain.MediaAssetCreateInput) (domain.MediaAsset, error)
+	Update(ctx context.Context, input domain.MediaAssetUpdateInput) (domain.MediaAsset, error)
+	Delete(ctx context.Context, id uuid.UUID, actorID string) error
+	FindByID(ctx context.Context, id uuid.UUID) (domain.MediaAsset, error)
+	FindAll(ctx context.Context, query domain.MediaAssetQuery) (domain.PageResult[domain.MediaAsset], error)
+}

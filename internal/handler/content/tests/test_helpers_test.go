@@ -210,6 +210,34 @@ func (s *tagServiceStub) FindAll(ctx context.Context, query domain.TagQuery) (do
 	return s.findAllFn(ctx, query)
 }
 
+type mediaAssetServiceStub struct {
+	createFn   func(ctx context.Context, input domain.MediaAssetCreateInput) (domain.MediaAsset, error)
+	updateFn   func(ctx context.Context, input domain.MediaAssetUpdateInput) (domain.MediaAsset, error)
+	deleteFn   func(ctx context.Context, id uuid.UUID, actorID string) error
+	findByIDFn func(ctx context.Context, id uuid.UUID) (domain.MediaAsset, error)
+	findAllFn  func(ctx context.Context, query domain.MediaAssetQuery) (domain.PageResult[domain.MediaAsset], error)
+}
+
+func (s *mediaAssetServiceStub) Create(ctx context.Context, input domain.MediaAssetCreateInput) (domain.MediaAsset, error) {
+	return s.createFn(ctx, input)
+}
+
+func (s *mediaAssetServiceStub) Update(ctx context.Context, input domain.MediaAssetUpdateInput) (domain.MediaAsset, error) {
+	return s.updateFn(ctx, input)
+}
+
+func (s *mediaAssetServiceStub) Delete(ctx context.Context, id uuid.UUID, actorID string) error {
+	return s.deleteFn(ctx, id, actorID)
+}
+
+func (s *mediaAssetServiceStub) FindByID(ctx context.Context, id uuid.UUID) (domain.MediaAsset, error) {
+	return s.findByIDFn(ctx, id)
+}
+
+func (s *mediaAssetServiceStub) FindAll(ctx context.Context, query domain.MediaAssetQuery) (domain.PageResult[domain.MediaAsset], error) {
+	return s.findAllFn(ctx, query)
+}
+
 func performJSONRequest(t *testing.T, method, target, body string, run func(c echo.Context) error) *httptest.ResponseRecorder {
 	t.Helper()
 
