@@ -63,9 +63,16 @@ func Initialize(ctx context.Context, cfg configs.Config) (*App, error) {
 
 	services := service.NewService(service.Dependencies{
 		Repositories: &service.RepositoryPorts{
-			User:         repositories.User,
-			Role:         repositories.Role,
-			AuthIdentity: repositories.AuthIdentity,
+			User:           repositories.User,
+			Role:           repositories.Role,
+			AuthIdentity:   repositories.AuthIdentity,
+			Section:        repositories.Section,
+			Lesson:         repositories.Lesson,
+			Unit:           repositories.Unit,
+			QuestionSet:    repositories.QuestionSet,
+			Question:       repositories.Question,
+			QuestionChoice: repositories.QuestionChoice,
+			Tag:            repositories.Tag,
 		},
 		TxManager:    infrastructure.NewTransactionManager(db.Gorm),
 		Storage:      storage,

@@ -12,6 +12,15 @@ type Section struct {
 	AuditFields
 }
 
+type SectionCreateInput struct {
+	Slug        string
+	Title       string
+	Description *string
+	OrderNo     int
+	IsPublished bool
+	ActorID     string
+}
+
 type SectionUpdateInput struct {
 	ID          uuid.UUID
 	Slug        EntityField[string]
@@ -39,6 +48,16 @@ type Lesson struct {
 	OrderNo     int
 	IsPublished bool
 	AuditFields
+}
+
+type LessonCreateInput struct {
+	SectionID   uuid.UUID
+	Slug        string
+	Title       string
+	Description *string
+	OrderNo     int
+	IsPublished bool
+	ActorID     string
 }
 
 type LessonUpdateInput struct {
@@ -72,6 +91,16 @@ type Unit struct {
 	AuditFields
 }
 
+type UnitCreateInput struct {
+	LessonID    uuid.UUID
+	Slug        string
+	Title       string
+	Description *string
+	OrderNo     int
+	IsPublished bool
+	ActorID     string
+}
+
 type UnitUpdateInput struct {
 	ID          uuid.UUID
 	LessonID    EntityField[uuid.UUID]
@@ -103,6 +132,18 @@ type QuestionSet struct {
 	IsPublished      bool
 	Version          int
 	AuditFields
+}
+
+type QuestionSetCreateInput struct {
+	UnitID           uuid.UUID
+	Slug             string
+	Title            string
+	Description      *string
+	OrderNo          int
+	EstimatedSeconds *int
+	IsPublished      bool
+	Version          int
+	ActorID          string
 }
 
 type QuestionSetUpdateInput struct {
@@ -144,6 +185,21 @@ type Question struct {
 	AuditFields
 }
 
+type QuestionCreateInput struct {
+	QuestionSetID uuid.UUID
+	Type          string
+	QuestionText  string
+	BlankPosition *int
+	Explanation   *string
+	ImageURL      *string
+	Difficulty    int
+	OrderNo       int
+	IsActive      bool
+	Choices       []QuestionChoiceInput
+	TagIDs        []uuid.UUID
+	ActorID       string
+}
+
 type QuestionUpdateInput struct {
 	ID            uuid.UUID
 	QuestionSetID EntityField[uuid.UUID]
@@ -155,6 +211,8 @@ type QuestionUpdateInput struct {
 	Difficulty    EntityField[int]
 	OrderNo       EntityField[int]
 	IsActive      EntityField[bool]
+	Choices       EntityField[[]QuestionChoiceInput]
+	TagIDs        EntityField[[]uuid.UUID]
 	ActorID       string
 }
 
@@ -177,6 +235,14 @@ type QuestionChoice struct {
 	ChoiceOrder int
 	IsCorrect   bool
 	AuditFields
+}
+
+type QuestionChoiceCreateInput struct {
+	QuestionID  uuid.UUID
+	ChoiceText  string
+	ChoiceOrder int
+	IsCorrect   bool
+	ActorID     string
 }
 
 type QuestionChoiceInput struct {
@@ -205,6 +271,11 @@ type Tag struct {
 	ID   uuid.UUID
 	Name string
 	AuditFields
+}
+
+type TagCreateInput struct {
+	Name    string
+	ActorID string
 }
 
 type TagUpdateInput struct {
