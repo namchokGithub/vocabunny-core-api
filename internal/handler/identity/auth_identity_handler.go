@@ -87,13 +87,34 @@ func (h *AuthIdentityHandler) FindAll(c echo.Context) error {
 }
 
 func (h *AuthIdentityHandler) LoginWithPassword(c echo.Context) error {
+	return h.loginWithPassword(c, "")
+}
+
+func (h *AuthIdentityHandler) LoginAppWithPassword(c echo.Context) error {
+	return h.loginWithPassword(c, domain.TokenScopeApp)
+}
+
+func (h *AuthIdentityHandler) LoginBOWithPassword(c echo.Context) error {
+	return h.loginWithPassword(c, domain.TokenScopeBO)
+}
+
+func (h *AuthIdentityHandler) loginWithPassword(c echo.Context, scope string) error {
 	var req PasswordLoginRequest
 	if err := helper.BindAndValidate(c, &req); err != nil {
 		return helper.RespondError(c, err)
 	}
+
+	if scope == "" {
+		scope = strings.TrimSpace(c.QueryParam("scope"))
+	}
+	if scope == "" {
+		scope = domain.TokenScopeApp
+	}
+
 	token, err := h.authIdentityService.LoginWithPassword(c.Request().Context(), domain.PasswordLoginInput{
 		EmailOrUsername: req.EmailOrUsername,
 		Password:        req.Password,
+		Scope:           scope,
 	})
 	if err != nil {
 		return helper.RespondError(c, err)

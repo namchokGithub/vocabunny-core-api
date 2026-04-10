@@ -42,6 +42,21 @@ func (m *Middleware) Authenticate() echo.MiddlewareFunc {
 	}
 }
 
+func (m *Middleware) RequireTokenScope(scopes ...string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			scope, _ := c.Get("jwt_scope").(string)
+			if scope == "" {
+				return helper.RespondError(c, helper.Unauthorized("invalid_scope", "token scope is not available", nil))
+			}
+			if !slices.Contains(scopes, scope) {
+				return helper.RespondError(c, helper.Forbidden("insufficient_scope", "token scope is not allowed for this route", nil))
+			}
+			return next(c)
+		}
+	}
+}
+
 func (m *Middleware) RequireRoles(roleNames ...domain.RoleName) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {

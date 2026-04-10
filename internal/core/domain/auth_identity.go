@@ -45,15 +45,17 @@ type AuthIdentityQuery struct {
 type PasswordLoginInput struct {
 	EmailOrUsername string
 	Password        string
+	Scope           string
 }
 
 type TokenType string
 
 const (
-	TokenTypeBearer  TokenType = "Bearer"
-	TokenUseAccess   string    = "access"
-	TokenUseRefresh  string    = "refresh"
-	TokenScopeAccess string    = "api"
+	TokenTypeBearer TokenType = "Bearer"
+	TokenUseAccess  string    = "access"
+	TokenUseRefresh string    = "refresh"
+	TokenScopeApp   string    = "app"
+	TokenScopeBO    string    = "bo"
 )
 
 type AuthToken struct {
