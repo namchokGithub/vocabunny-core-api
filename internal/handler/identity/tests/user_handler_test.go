@@ -1,4 +1,4 @@
-package identity
+package identity_test
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/domain"
+	identity "github.com/namchokGithub/vocabunny-core-api/internal/handler/identity"
 )
 
 func TestUserHandlerCreate(t *testing.T) {
@@ -56,7 +57,7 @@ func TestUserHandlerCreate(t *testing.T) {
 		},
 	}
 
-	handler := NewUserHandler(service)
+	handler := identity.NewUserHandler(service)
 	body := `{"email":"bunny@example.com","username":"bun","display_name":"Bun","status":"ACTIVE","role_ids":["` + roleID.String() + `"]}`
 	rec := performJSONRequest(t, http.MethodPost, "/users", body, func(c echo.Context) error {
 		c.Request().Header.Set("X-Actor-ID", "actor-123")
@@ -68,8 +69,8 @@ func TestUserHandlerCreate(t *testing.T) {
 	}
 
 	var resp struct {
-		Success bool         `json:"success"`
-		Data    UserResponse `json:"data"`
+		Success bool                  `json:"success"`
+		Data    identity.UserResponse `json:"data"`
 	}
 	decodeResponse(t, rec, &resp)
 
@@ -95,7 +96,7 @@ func TestUserHandlerUpdateInvalidID(t *testing.T) {
 		},
 	}
 
-	handler := NewUserHandler(service)
+	handler := identity.NewUserHandler(service)
 	rec := performJSONRequest(t, http.MethodPut, "/users/not-a-uuid", `{"display_name":"New Name"}`, func(c echo.Context) error {
 		c.SetParamNames("id")
 		c.SetParamValues("not-a-uuid")
@@ -154,7 +155,7 @@ func TestUserHandlerFindAllBuildsQuery(t *testing.T) {
 		},
 	}
 
-	handler := NewUserHandler(service)
+	handler := identity.NewUserHandler(service)
 	rec := performJSONRequest(t, http.MethodGet, "/users?search=%20rabbit%20&include_auth=true&page=2&limit=5&sort_by=email&sort_order=desc&status=ACTIVE&role_id="+roleID.String(), "", func(c echo.Context) error {
 		return handler.FindAll(c)
 	})

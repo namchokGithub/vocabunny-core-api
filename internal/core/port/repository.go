@@ -43,6 +43,69 @@ type AuthIdentityRepository interface {
 	ExistsByProviderIdentity(ctx context.Context, provider domain.AuthProvider, providerUserID string, excludeID *uuid.UUID) (bool, error)
 }
 
+type SectionRepository interface {
+	Create(ctx context.Context, section domain.Section) (domain.Section, error)
+	Update(ctx context.Context, input domain.SectionUpdateInput) (domain.Section, error)
+	Delete(ctx context.Context, id uuid.UUID, actorID string) error
+	FindByID(ctx context.Context, id uuid.UUID) (domain.Section, error)
+	FindAll(ctx context.Context, query domain.SectionQuery) (domain.PageResult[domain.Section], error)
+	ExistsBySlug(ctx context.Context, slug string, excludeID *uuid.UUID) (bool, error)
+}
+
+type LessonRepository interface {
+	Create(ctx context.Context, lesson domain.Lesson) (domain.Lesson, error)
+	Update(ctx context.Context, input domain.LessonUpdateInput) (domain.Lesson, error)
+	Delete(ctx context.Context, id uuid.UUID, actorID string) error
+	FindByID(ctx context.Context, id uuid.UUID) (domain.Lesson, error)
+	FindAll(ctx context.Context, query domain.LessonQuery) (domain.PageResult[domain.Lesson], error)
+	ExistsBySlug(ctx context.Context, sectionID uuid.UUID, slug string, excludeID *uuid.UUID) (bool, error)
+}
+
+type UnitRepository interface {
+	Create(ctx context.Context, unit domain.Unit) (domain.Unit, error)
+	Update(ctx context.Context, input domain.UnitUpdateInput) (domain.Unit, error)
+	Delete(ctx context.Context, id uuid.UUID, actorID string) error
+	FindByID(ctx context.Context, id uuid.UUID) (domain.Unit, error)
+	FindAll(ctx context.Context, query domain.UnitQuery) (domain.PageResult[domain.Unit], error)
+	ExistsBySlug(ctx context.Context, lessonID uuid.UUID, slug string, excludeID *uuid.UUID) (bool, error)
+}
+
+type QuestionSetRepository interface {
+	Create(ctx context.Context, questionSet domain.QuestionSet) (domain.QuestionSet, error)
+	Update(ctx context.Context, input domain.QuestionSetUpdateInput) (domain.QuestionSet, error)
+	Delete(ctx context.Context, id uuid.UUID, actorID string) error
+	FindByID(ctx context.Context, id uuid.UUID) (domain.QuestionSet, error)
+	FindAll(ctx context.Context, query domain.QuestionSetQuery) (domain.PageResult[domain.QuestionSet], error)
+	ExistsBySlugVersion(ctx context.Context, unitID uuid.UUID, slug string, version int, excludeID *uuid.UUID) (bool, error)
+}
+
+type QuestionRepository interface {
+	Create(ctx context.Context, question domain.Question) (domain.Question, error)
+	Update(ctx context.Context, input domain.QuestionUpdateInput) (domain.Question, error)
+	Delete(ctx context.Context, id uuid.UUID, actorID string) error
+	FindByID(ctx context.Context, id uuid.UUID) (domain.Question, error)
+	FindAll(ctx context.Context, query domain.QuestionQuery) (domain.PageResult[domain.Question], error)
+	ReplaceChoices(ctx context.Context, questionID uuid.UUID, choices []domain.QuestionChoiceInput, actorID string) error
+	ReplaceTags(ctx context.Context, questionID uuid.UUID, tagIDs []uuid.UUID, actorID string) error
+}
+
+type QuestionChoiceRepository interface {
+	Create(ctx context.Context, choice domain.QuestionChoice) (domain.QuestionChoice, error)
+	Update(ctx context.Context, input domain.QuestionChoiceUpdateInput) (domain.QuestionChoice, error)
+	Delete(ctx context.Context, id uuid.UUID, actorID string) error
+	FindByID(ctx context.Context, id uuid.UUID) (domain.QuestionChoice, error)
+	FindAll(ctx context.Context, query domain.QuestionChoiceQuery) (domain.PageResult[domain.QuestionChoice], error)
+}
+
+type TagRepository interface {
+	Create(ctx context.Context, tag domain.Tag) (domain.Tag, error)
+	Update(ctx context.Context, input domain.TagUpdateInput) (domain.Tag, error)
+	Delete(ctx context.Context, id uuid.UUID, actorID string) error
+	FindByID(ctx context.Context, id uuid.UUID) (domain.Tag, error)
+	FindAll(ctx context.Context, query domain.TagQuery) (domain.PageResult[domain.Tag], error)
+	ExistsByName(ctx context.Context, name string, excludeID *uuid.UUID) (bool, error)
+}
+
 type TransactionManager interface {
 	RunInTx(ctx context.Context, fn func(txCtx context.Context) error) error
 }

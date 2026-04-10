@@ -1,4 +1,4 @@
-package identity
+package identity_test
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/domain"
+	identity "github.com/namchokGithub/vocabunny-core-api/internal/handler/identity"
 )
 
 func TestRoleHandlerFindAllBuildsQuery(t *testing.T) {
@@ -23,7 +24,7 @@ func TestRoleHandlerFindAllBuildsQuery(t *testing.T) {
 		},
 	}
 
-	handler := NewRoleHandler(service)
+	handler := identity.NewRoleHandler(service)
 	rec := performJSONRequest(t, http.MethodGet, "/roles?search=%20admin%20&permission=USER_READ&sort_by=name&sort_order=desc&page=3&limit=7", "", func(c echo.Context) error {
 		return handler.FindAll(c)
 	})

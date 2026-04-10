@@ -77,6 +77,8 @@ Follow the same pattern as `users`:
 5. Implement DTOs, request/response transformers, and handler in `internal/handler/`.
 6. Register dependencies through `internal/repository/repository.go`, `internal/core/service/service.go`, `internal/handler/handler.go`, and `protocol/http.go`.
 
-## <br>
+<br>
+
+---
 
 _© 2026 VocabBunny. Released under the MIT License._
