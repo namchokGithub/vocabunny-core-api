@@ -1,4 +1,4 @@
-package identity
+package identity_test
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/domain"
+	identity "github.com/namchokGithub/vocabunny-core-api/internal/handler/identity"
 )
 
 func TestAuthIdentityHandlerLoginWithPasswordDefaultsToAppScope(t *testing.T) {
@@ -42,7 +43,7 @@ func TestAuthIdentityHandlerLoginWithPasswordDefaultsToAppScope(t *testing.T) {
 		},
 	}
 
-	handler := NewAuthIdentityHandler(service)
+	handler := identity.NewAuthIdentityHandler(service)
 	rec := performJSONRequest(t, http.MethodPost, "/auth/login/password", `{"email_or_username":"bunny@example.com","password":"secret"}`, func(c echo.Context) error {
 		return handler.LoginWithPassword(c)
 	})
@@ -52,8 +53,8 @@ func TestAuthIdentityHandlerLoginWithPasswordDefaultsToAppScope(t *testing.T) {
 	}
 
 	var resp struct {
-		Success bool          `json:"success"`
-		Data    LoginResponse `json:"data"`
+		Success bool                   `json:"success"`
+		Data    identity.LoginResponse `json:"data"`
 	}
 	decodeResponse(t, rec, &resp)
 
@@ -87,7 +88,7 @@ func TestAuthIdentityHandlerLoginBOWithPasswordUsesBOScope(t *testing.T) {
 		},
 	}
 
-	handler := NewAuthIdentityHandler(service)
+	handler := identity.NewAuthIdentityHandler(service)
 	rec := performJSONRequest(t, http.MethodPost, "/bo/auth/login/password?scope=app", `{"email_or_username":"admin","password":"secret"}`, func(c echo.Context) error {
 		return handler.LoginBOWithPassword(c)
 	})
@@ -108,7 +109,7 @@ func TestAuthIdentityHandlerFindAllRejectsInvalidUserID(t *testing.T) {
 		},
 	}
 
-	handler := NewAuthIdentityHandler(service)
+	handler := identity.NewAuthIdentityHandler(service)
 	rec := performJSONRequest(t, http.MethodGet, "/auth-identities?user_id=bad-uuid", "", func(c echo.Context) error {
 		return handler.FindAll(c)
 	})
