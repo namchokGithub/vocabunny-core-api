@@ -10,6 +10,7 @@ func registerBORoutes(group *echo.Group, app *App) {
 
 	auth := boGroup.Group("/auth")
 	auth.POST("/login/password", app.Handlers.AuthIdentity.LoginBOWithPassword)
+	auth.POST("/refresh", app.Handlers.AuthIdentity.RefreshBOToken)
 
 	authenticated := boGroup.Group("")
 	authenticated.Use(app.Middleware.Authenticate(), app.Middleware.RequireTokenScope(domain.TokenScopeBO))

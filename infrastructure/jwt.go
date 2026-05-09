@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -91,6 +92,35 @@ func (m *JWTManager) GenerateRefreshToken(subject string, scope string) (string,
 
 func (m *JWTManager) RefreshTokenTTLSeconds() int64 {
 	return int64(m.refreshTokenTTL / time.Second)
+}
+
+func (m *JWTManager) ValidateRefreshToken(tokenString string) (string, string, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &RefreshClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+
+		return m.secret, nil
+	})
+	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return "", "", helper.Unauthorized("refresh_token_expired", "refresh token is expired", err)
+		}
+		return "", "", helper.Unauthorized("invalid_refresh_token", "refresh token is invalid", err)
+	}
+	if !token.Valid {
+		return "", "", helper.Unauthorized("invalid_refresh_token", "refresh token is invalid", nil)
+	}
+
+	claims, ok := token.Claims.(*RefreshClaims)
+	if !ok {
+		return "", "", helper.Unauthorized("invalid_refresh_token", "refresh token claims are invalid", nil)
+	}
+	if claims.TokenUse != domain.TokenUseRefresh {
+		return "", "", helper.Unauthorized("invalid_refresh_token", "token is not a refresh token", nil)
+	}
+
+	return claims.Subject, claims.Scope, nil
 }
 
 func (m *JWTManager) Middleware() echo.MiddlewareFunc {

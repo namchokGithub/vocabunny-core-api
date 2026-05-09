@@ -48,6 +48,11 @@ type PasswordLoginInput struct {
 	Scope           string
 }
 
+type RefreshTokenInput struct {
+	RefreshToken string
+	Scope        string
+}
+
 type TokenType string
 
 const (

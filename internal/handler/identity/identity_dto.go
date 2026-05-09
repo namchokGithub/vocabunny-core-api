@@ -111,6 +111,10 @@ type PasswordLoginRequest struct {
 	Password        string `json:"password" validate:"required"`
 }
 
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token" validate:"required"`
+}
+
 type AuthIdentityResponse struct {
 	ID             string `json:"id"`
 	UserID         string `json:"user_id"`

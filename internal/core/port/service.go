@@ -33,6 +33,7 @@ type AuthIdentityService interface {
 	FindByID(ctx context.Context, id uuid.UUID) (domain.AuthIdentity, error)
 	FindAll(ctx context.Context, query domain.AuthIdentityQuery) (domain.PageResult[domain.AuthIdentity], error)
 	LoginWithPassword(ctx context.Context, input domain.PasswordLoginInput) (domain.AuthToken, error)
+	RefreshAccessToken(ctx context.Context, input domain.RefreshTokenInput) (domain.AuthToken, error)
 }
 
 type SectionService interface {

@@ -161,7 +161,7 @@ func (s *authIdentityService) LoginWithPassword(ctx context.Context, input domai
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(identity.PasswordHash), []byte(password)); err != nil {
-		return domain.AuthToken{}, helper.Unauthorized("invalid_credentials", "invalid credentials", err)
+		return domain.AuthToken{}, helper.Unauthorized("invalid_credentials", "invalid credentials", err) // Invalid password
 	}
 
 	user, err := s.userRepository.FindByID(ctx, identity.UserID)
@@ -190,6 +190,45 @@ func (s *authIdentityService) LoginWithPassword(ctx context.Context, input domai
 		RefreshToken:     refreshToken,
 		RefreshExpiresIn: s.tokenManager.RefreshTokenTTLSeconds(),
 		User:             user,
+	}, nil
+}
+
+func (s *authIdentityService) RefreshAccessToken(ctx context.Context, input domain.RefreshTokenInput) (domain.AuthToken, error) {
+	refreshToken := strings.TrimSpace(input.RefreshToken)
+	scope := strings.TrimSpace(input.Scope)
+	if refreshToken == "" {
+		return domain.AuthToken{}, helper.BadRequest("invalid_refresh_token", "refresh_token is required", nil)
+	}
+	if !isValidTokenScope(scope) {
+		return domain.AuthToken{}, helper.BadRequest("invalid_scope", "scope must be app or bo", nil)
+	}
+
+	subject, refreshScope, err := s.tokenManager.ValidateRefreshToken(refreshToken)
+	if err != nil {
+		return domain.AuthToken{}, err
+	}
+	if refreshScope != scope {
+		return domain.AuthToken{}, helper.Forbidden("insufficient_scope", "token scope is not allowed for this route", nil)
+	}
+
+	user, err := s.userRepository.FindBySubject(ctx, subject)
+	if err != nil {
+		return domain.AuthToken{}, helper.Unauthorized("invalid_subject", "user for token subject was not found", err)
+	}
+	if user.Status != domain.UserStatusActive {
+		return domain.AuthToken{}, helper.Unauthorized("user_inactive", "user is not active", nil)
+	}
+
+	accessToken, err := s.tokenManager.GenerateAccessToken(user.ID.String(), refreshScope)
+	if err != nil {
+		return domain.AuthToken{}, helper.Internal("generate_token_failed", "failed to generate access token", err)
+	}
+
+	return domain.AuthToken{
+		AccessToken: accessToken,
+		TokenType:   domain.TokenTypeBearer,
+		ExpiresIn:   s.tokenManager.AccessTokenTTLSeconds(),
+		User:        user,
 	}, nil
 }
 

@@ -8,8 +8,8 @@ import (
 type AppError struct {
 	Code       string `json:"code"`
 	Message    string `json:"message"`
-	StatusCode int    `json:"-"`
-	Err        error  `json:"-"`
+	StatusCode int    `json:"status_code"`
+	Err        error  `json:"error"`
 }
 
 func (e *AppError) Error() string {

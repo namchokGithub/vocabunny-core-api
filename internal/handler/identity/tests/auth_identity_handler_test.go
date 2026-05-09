@@ -133,3 +133,88 @@ func TestAuthIdentityHandlerFindAllRejectsInvalidUserID(t *testing.T) {
 		t.Fatalf("expected error code invalid_user_id, got %q", resp.Error.Code)
 	}
 }
+
+func TestAuthIdentityHandlerRefreshAppTokenUsesAppScope(t *testing.T) {
+	t.Parallel()
+
+	userID := uuid.New()
+	service := &authIdentityServiceStub{
+		refreshAccessTokenFn: func(ctx context.Context, input domain.RefreshTokenInput) (domain.AuthToken, error) {
+			if input.Scope != domain.TokenScopeApp {
+				t.Fatalf("expected scope %q, got %q", domain.TokenScopeApp, input.Scope)
+			}
+			if input.RefreshToken != "refresh-token" {
+				t.Fatalf("expected refresh token refresh-token, got %q", input.RefreshToken)
+			}
+			return domain.AuthToken{
+				AccessToken: "new-access-token",
+				TokenType:   domain.TokenTypeBearer,
+				ExpiresIn:   3600,
+				User: domain.User{
+					ID:          userID,
+					DisplayName: "Bunny",
+					Status:      domain.UserStatusActive,
+					AuditFields: domain.AuditFields{
+						CreatedAt: time.Date(2026, 4, 9, 10, 0, 0, 0, time.UTC),
+						UpdatedAt: time.Date(2026, 4, 9, 10, 0, 0, 0, time.UTC),
+					},
+				},
+			}, nil
+		},
+	}
+
+	handler := identity.NewAuthIdentityHandler(service)
+	rec := performJSONRequest(t, http.MethodPost, "/auth/refresh", `{"refresh_token":"refresh-token"}`, func(c echo.Context) error {
+		return handler.RefreshAppToken(c)
+	})
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+	}
+
+	var resp struct {
+		Success bool                   `json:"success"`
+		Data    identity.LoginResponse `json:"data"`
+	}
+	decodeResponse(t, rec, &resp)
+
+	if resp.Data.AccessToken != "new-access-token" {
+		t.Fatalf("expected access token new-access-token, got %q", resp.Data.AccessToken)
+	}
+	if resp.Data.RefreshToken != "" {
+		t.Fatalf("expected refresh token to be omitted, got %q", resp.Data.RefreshToken)
+	}
+}
+
+func TestAuthIdentityHandlerRefreshBOTokenUsesBOScope(t *testing.T) {
+	t.Parallel()
+
+	service := &authIdentityServiceStub{
+		refreshAccessTokenFn: func(ctx context.Context, input domain.RefreshTokenInput) (domain.AuthToken, error) {
+			if input.Scope != domain.TokenScopeBO {
+				t.Fatalf("expected scope %q, got %q", domain.TokenScopeBO, input.Scope)
+			}
+			return domain.AuthToken{
+				AccessToken: "bo-access",
+				TokenType:   domain.TokenTypeBearer,
+				ExpiresIn:   3600,
+				User: domain.User{
+					ID: uuid.New(),
+					AuditFields: domain.AuditFields{
+						CreatedAt: time.Date(2026, 4, 9, 10, 0, 0, 0, time.UTC),
+						UpdatedAt: time.Date(2026, 4, 9, 10, 0, 0, 0, time.UTC),
+					},
+				},
+			}, nil
+		},
+	}
+
+	handler := identity.NewAuthIdentityHandler(service)
+	rec := performJSONRequest(t, http.MethodPost, "/bo/auth/refresh", `{"refresh_token":"refresh-token"}`, func(c echo.Context) error {
+		return handler.RefreshBOToken(c)
+	})
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+	}
+}

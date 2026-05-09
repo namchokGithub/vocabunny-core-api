@@ -126,6 +126,7 @@ type FileStorage interface {
 type TokenManager interface {
 	GenerateAccessToken(subject string, scope string) (string, error)
 	GenerateRefreshToken(subject string, scope string) (string, error)
+	ValidateRefreshToken(tokenString string) (subject string, scope string, err error)
 	AccessTokenTTLSeconds() int64
 	RefreshTokenTTLSeconds() int64
 }

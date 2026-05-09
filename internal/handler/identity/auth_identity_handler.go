@@ -98,6 +98,14 @@ func (h *AuthIdentityHandler) LoginBOWithPassword(c echo.Context) error {
 	return h.loginWithPassword(c, domain.TokenScopeBO)
 }
 
+func (h *AuthIdentityHandler) RefreshAppToken(c echo.Context) error {
+	return h.refreshAccessToken(c, domain.TokenScopeApp)
+}
+
+func (h *AuthIdentityHandler) RefreshBOToken(c echo.Context) error {
+	return h.refreshAccessToken(c, domain.TokenScopeBO)
+}
+
 func (h *AuthIdentityHandler) loginWithPassword(c echo.Context, scope string) error {
 	var req PasswordLoginRequest
 	if err := helper.BindAndValidate(c, &req); err != nil {
@@ -115,6 +123,22 @@ func (h *AuthIdentityHandler) loginWithPassword(c echo.Context, scope string) er
 		EmailOrUsername: req.EmailOrUsername,
 		Password:        req.Password,
 		Scope:           scope,
+	})
+	if err != nil {
+		return helper.RespondError(c, err)
+	}
+	return helper.RespondSuccess(c, http.StatusOK, toLoginResponse(token))
+}
+
+func (h *AuthIdentityHandler) refreshAccessToken(c echo.Context, scope string) error {
+	var req RefreshTokenRequest
+	if err := helper.BindAndValidate(c, &req); err != nil {
+		return helper.RespondError(c, err)
+	}
+
+	token, err := h.authIdentityService.RefreshAccessToken(c.Request().Context(), domain.RefreshTokenInput{
+		RefreshToken: req.RefreshToken,
+		Scope:        scope,
 	})
 	if err != nil {
 		return helper.RespondError(c, err)

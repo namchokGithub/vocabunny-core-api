@@ -35,7 +35,7 @@ Core design rules:
 ## Run
 
 ```bash
-cp .env-example .env
+cp .env.example .env
 go mod tidy
 go run ./cmd
 ```
