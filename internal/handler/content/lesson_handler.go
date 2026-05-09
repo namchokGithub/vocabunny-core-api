@@ -117,5 +117,5 @@ func (h *LessonHandler) FindAll(c echo.Context) error {
 	for _, item := range result.Items {
 		items = append(items, toLessonResponse(item))
 	}
-	return helper.RespondSuccess(c, http.StatusOK, ListResponse[LessonResponse, domain.LessonQuery]{Items: items, Paging: PagingResponse{Page: result.Paging.Page, Limit: result.Paging.Limit, Total: result.Paging.Total}, Query: query})
+	return helper.RespondSuccess(c, http.StatusOK, ListResponse[LessonResponse, domain.LessonQuery]{Items: items, Paging: helper.NewPagingResponse(result.Paging), Query: query})
 }

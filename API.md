@@ -147,6 +147,23 @@ Issue a new **back-office access token** from a valid `bo` refresh token.
 | `status` | string | `INACTIVE` \| `ACTIVE` \| `BANNED` \| `DELETED` |
 | `include_auth` | bool | Include auth identities in response |
 
+### `GET /bo/users` — Response Example
+
+```json
+{
+  "items": [],
+  "paging": {
+    "page": 1,
+    "limit": 20,
+    "total": 0,
+    "total_pages": 0
+  },
+  "query": {
+    "include_auth": false
+  }
+}
+```
+
 ### `POST /bo/users` — Request Body
 
 ```json
@@ -252,6 +269,21 @@ An **auth identity** links a user to a login provider (password, Google, Apple).
 | `user_id` | uuid | Filter by user |
 | `provider` | string | Filter by provider |
 | `page`, `limit`, `sort_by`, `sort_order` | — | Pagination & sorting |
+
+### `GET /bo/auth-identities` — Response Example
+
+```json
+{
+  "items": [],
+  "paging": {
+    "page": 1,
+    "limit": 20,
+    "total": 0,
+    "total_pages": 0
+  },
+  "query": {}
+}
+```
 
 ---
 
@@ -550,11 +582,14 @@ The server initialises a WebSocket manager (`app.Websocket`) but **no public Web
   "paging": {
     "page": 1,
     "limit": 20,
-    "total": 100
+    "total": 100,
+    "total_pages": 5
   },
   "query": {}
 }
 ```
+
+`total_pages` is calculated from `total` and `limit`. When `total` is `0`, `total_pages` is also `0`.
 
 ### Delete Response
 

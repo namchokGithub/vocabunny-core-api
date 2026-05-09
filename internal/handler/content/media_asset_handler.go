@@ -227,13 +227,9 @@ func (h *MediaAssetHandler) FindAll(c echo.Context) error {
 	}
 
 	return helper.RespondSuccess(c, http.StatusOK, ListResponse[MediaAssetResponse, domain.MediaAssetQuery]{
-		Items: items,
-		Paging: PagingResponse{
-			Page:  result.Paging.Page,
-			Limit: result.Paging.Limit,
-			Total: result.Paging.Total,
-		},
-		Query: query,
+		Items:  items,
+		Paging: helper.NewPagingResponse(result.Paging),
+		Query:  query,
 	})
 }
 

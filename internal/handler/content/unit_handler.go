@@ -110,5 +110,5 @@ func (h *UnitHandler) FindAll(c echo.Context) error {
 	for _, item := range result.Items {
 		items = append(items, toUnitResponse(item))
 	}
-	return helper.RespondSuccess(c, http.StatusOK, ListResponse[UnitResponse, domain.UnitQuery]{Items: items, Paging: PagingResponse{Page: result.Paging.Page, Limit: result.Paging.Limit, Total: result.Paging.Total}, Query: query})
+	return helper.RespondSuccess(c, http.StatusOK, ListResponse[UnitResponse, domain.UnitQuery]{Items: items, Paging: helper.NewPagingResponse(result.Paging), Query: query})
 }

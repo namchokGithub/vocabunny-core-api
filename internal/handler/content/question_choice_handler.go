@@ -95,5 +95,5 @@ func (h *QuestionChoiceHandler) FindAll(c echo.Context) error {
 	for _, item := range result.Items {
 		items = append(items, toQuestionChoiceResponse(item))
 	}
-	return helper.RespondSuccess(c, http.StatusOK, ListResponse[QuestionChoiceResponse, domain.QuestionChoiceQuery]{Items: items, Paging: PagingResponse{Page: result.Paging.Page, Limit: result.Paging.Limit, Total: result.Paging.Total}, Query: query})
+	return helper.RespondSuccess(c, http.StatusOK, ListResponse[QuestionChoiceResponse, domain.QuestionChoiceQuery]{Items: items, Paging: helper.NewPagingResponse(result.Paging), Query: query})
 }

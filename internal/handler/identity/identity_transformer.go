@@ -120,13 +120,9 @@ func toUsersListResponse(result domain.PageResult[domain.User], query domain.Use
 	}
 
 	return UsersListResponse{
-		Items: items,
-		Paging: PagingResponse{
-			Page:  result.Paging.Page,
-			Limit: result.Paging.Limit,
-			Total: result.Paging.Total,
-		},
-		Query: payload,
+		Items:  items,
+		Paging: helper.NewPagingResponse(result.Paging),
+		Query:  payload,
 	}
 }
 
@@ -205,13 +201,9 @@ func toRolesListResponse(result domain.PageResult[domain.Role], query domain.Rol
 	}
 
 	return RolesListResponse{
-		Items: items,
-		Paging: PagingResponse{
-			Page:  result.Paging.Page,
-			Limit: result.Paging.Limit,
-			Total: result.Paging.Total,
-		},
-		Query: payload,
+		Items:  items,
+		Paging: helper.NewPagingResponse(result.Paging),
+		Query:  payload,
 	}
 }
 
@@ -274,13 +266,9 @@ func toAuthIdentitiesListResponse(result domain.PageResult[domain.AuthIdentity],
 		payload.Provider = string(*query.Provider)
 	}
 	return AuthIdentitiesListResponse{
-		Items: items,
-		Paging: PagingResponse{
-			Page:  result.Paging.Page,
-			Limit: result.Paging.Limit,
-			Total: result.Paging.Total,
-		},
-		Query: payload,
+		Items:  items,
+		Paging: helper.NewPagingResponse(result.Paging),
+		Query:  payload,
 	}
 }
 
