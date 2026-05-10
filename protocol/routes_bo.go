@@ -40,6 +40,9 @@ func registerBORoutes(group *echo.Group, app *App) {
 
 	content := authenticated.Group("/content")
 
+	orderNos := content.Group("/order-nos")
+	orderNos.GET("/last", app.Handlers.ContentOrder.GetLastOrderNos, app.Middleware.RequirePermissions(domain.PermissionContentRead))
+
 	sections := content.Group("/sections")
 	sections.POST("", app.Handlers.Section.Create, app.Middleware.RequirePermissions(domain.PermissionContentWrite))
 	sections.GET("", app.Handlers.Section.FindAll, app.Middleware.RequirePermissions(domain.PermissionContentRead))

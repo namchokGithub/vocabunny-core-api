@@ -44,6 +44,10 @@ type SectionService interface {
 	FindAll(ctx context.Context, query domain.SectionQuery) (domain.PageResult[domain.Section], error)
 }
 
+type ContentOrderService interface {
+	GetLastOrderNos(ctx context.Context) (domain.ContentOrderNoSummary, error)
+}
+
 type LessonService interface {
 	Create(ctx context.Context, input domain.LessonCreateInput) (domain.Lesson, error)
 	Update(ctx context.Context, input domain.LessonUpdateInput) (domain.Lesson, error)

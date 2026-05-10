@@ -16,6 +16,7 @@ type Handler struct {
 	User           *identityhandler.UserHandler
 	Role           *identityhandler.RoleHandler
 	AuthIdentity   *identityhandler.AuthIdentityHandler
+	ContentOrder   *contenthandler.ContentOrderHandler
 	Section        *contenthandler.SectionHandler
 	Lesson         *contenthandler.LessonHandler
 	Unit           *contenthandler.UnitHandler
@@ -40,6 +41,7 @@ func NewHandler(deps Dependencies) *Handler {
 		User:           identityHandlers.User,
 		Role:           identityHandlers.Role,
 		AuthIdentity:   identityHandlers.AuthIdentity,
+		ContentOrder:   contentHandlers.ContentOrder,
 		Section:        contentHandlers.Section,
 		Lesson:         contentHandlers.Lesson,
 		Unit:           contentHandlers.Unit,

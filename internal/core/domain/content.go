@@ -260,6 +260,14 @@ type QuestionChoiceUpdateInput struct {
 	ActorID     string
 }
 
+type ContentOrderNoSummary struct {
+	Sections     int
+	Lessons      int
+	Units        int
+	QuestionSets int
+	Questions    int
+}
+
 type QuestionChoiceQuery struct {
 	Paging     Paging
 	QuestionID *uuid.UUID

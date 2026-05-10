@@ -13,6 +13,7 @@ All protected endpoints require a `Bearer` JWT token in the `Authorization` head
 - [Users (BO)](#users-bo)
 - [Roles (BO)](#roles-bo)
 - [Auth Identities (BO)](#auth-identities-bo)
+- [Content — Order Nos (BO)](#content--order-nos-bo)
 - [Content — Sections (BO)](#content--sections-bo)
 - [Content — Lessons (BO)](#content--lessons-bo)
 - [Content — Units (BO)](#content--units-bo)
@@ -282,6 +283,30 @@ An **auth identity** links a user to a login provider (password, Google, Apple).
     "total_pages": 0
   },
   "query": {}
+}
+```
+
+---
+
+## Content — Order Nos (BO)
+
+> Scope: `bo` | Base path: `/api/v1/bo/content/order-nos`
+
+Use this endpoint to fetch the current highest `order_no` for each content resource that supports manual ordering.
+
+| Method | Path | Permission | Description |
+|--------|------|------------|-------------|
+| `GET` | `/bo/content/order-nos/last` | `CONTENT_READ` | Get the latest `order_no` grouped by content type |
+
+### `GET /bo/content/order-nos/last` — Response Example
+
+```json
+{
+  "sections": 12,
+  "lessons": 34,
+  "units": 20,
+  "question_sets": 15,
+  "questions": 87
 }
 ```
 

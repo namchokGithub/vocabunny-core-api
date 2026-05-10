@@ -50,6 +50,7 @@ type SectionRepository interface {
 	FindByID(ctx context.Context, id uuid.UUID) (domain.Section, error)
 	FindAll(ctx context.Context, query domain.SectionQuery) (domain.PageResult[domain.Section], error)
 	ExistsBySlug(ctx context.Context, slug string, excludeID *uuid.UUID) (bool, error)
+	FindLastOrderNo(ctx context.Context) (int, error)
 }
 
 type LessonRepository interface {
@@ -59,6 +60,7 @@ type LessonRepository interface {
 	FindByID(ctx context.Context, id uuid.UUID) (domain.Lesson, error)
 	FindAll(ctx context.Context, query domain.LessonQuery) (domain.PageResult[domain.Lesson], error)
 	ExistsBySlug(ctx context.Context, sectionID uuid.UUID, slug string, excludeID *uuid.UUID) (bool, error)
+	FindLastOrderNo(ctx context.Context) (int, error)
 }
 
 type UnitRepository interface {
@@ -68,6 +70,7 @@ type UnitRepository interface {
 	FindByID(ctx context.Context, id uuid.UUID) (domain.Unit, error)
 	FindAll(ctx context.Context, query domain.UnitQuery) (domain.PageResult[domain.Unit], error)
 	ExistsBySlug(ctx context.Context, lessonID uuid.UUID, slug string, excludeID *uuid.UUID) (bool, error)
+	FindLastOrderNo(ctx context.Context) (int, error)
 }
 
 type QuestionSetRepository interface {
@@ -77,6 +80,7 @@ type QuestionSetRepository interface {
 	FindByID(ctx context.Context, id uuid.UUID) (domain.QuestionSet, error)
 	FindAll(ctx context.Context, query domain.QuestionSetQuery) (domain.PageResult[domain.QuestionSet], error)
 	ExistsBySlugVersion(ctx context.Context, unitID uuid.UUID, slug string, version int, excludeID *uuid.UUID) (bool, error)
+	FindLastOrderNo(ctx context.Context) (int, error)
 }
 
 type QuestionRepository interface {
@@ -87,6 +91,7 @@ type QuestionRepository interface {
 	FindAll(ctx context.Context, query domain.QuestionQuery) (domain.PageResult[domain.Question], error)
 	ReplaceChoices(ctx context.Context, questionID uuid.UUID, choices []domain.QuestionChoiceInput, actorID string) error
 	ReplaceTags(ctx context.Context, questionID uuid.UUID, tagIDs []uuid.UUID, actorID string) error
+	FindLastOrderNo(ctx context.Context) (int, error)
 }
 
 type QuestionChoiceRepository interface {

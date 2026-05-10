@@ -31,6 +31,7 @@ type Service struct {
 	User           port.UserService
 	Role           port.RoleService
 	AuthIdentity   port.AuthIdentityService
+	ContentOrder   port.ContentOrderService
 	Section        port.SectionService
 	Lesson         port.LessonService
 	Unit           port.UnitService
@@ -65,6 +66,7 @@ func NewService(deps Dependencies) *Service {
 		User:           identityServices.User,
 		Role:           identityServices.Role,
 		AuthIdentity:   identityServices.AuthIdentity,
+		ContentOrder:   contentServices.ContentOrder,
 		Section:        contentServices.Section,
 		Lesson:         contentServices.Lesson,
 		Unit:           contentServices.Unit,

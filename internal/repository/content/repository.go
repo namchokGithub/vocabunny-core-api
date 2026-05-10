@@ -55,6 +55,14 @@ func (r *baseRepository) dbWithContext(ctx context.Context) *gorm.DB {
 	return r.db.WithContext(ctx)
 }
 
+func findLastOrderNo(ctx context.Context, dbWithContext func(context.Context) *gorm.DB, model any, code string, message string) (int, error) {
+	var orderNo int
+	if err := dbWithContext(ctx).Model(model).Select("COALESCE(MAX(order_no), 0)").Scan(&orderNo).Error; err != nil {
+		return 0, helper.Internal(code, message, err)
+	}
+	return orderNo, nil
+}
+
 type sectionRepository struct {
 	*baseRepository
 }
@@ -173,6 +181,10 @@ func (r *sectionRepository) FindAll(ctx context.Context, query domain.SectionQue
 
 func (r *sectionRepository) ExistsBySlug(ctx context.Context, slug string, excludeID *uuid.UUID) (bool, error) {
 	return existsByStringField(ctx, r.dbWithContext, &SectionModel{}, "slug", slug, excludeID, "exists_section_failed", "failed to check section uniqueness")
+}
+
+func (r *sectionRepository) FindLastOrderNo(ctx context.Context) (int, error) {
+	return findLastOrderNo(ctx, r.dbWithContext, &SectionModel{}, "find_section_last_order_no_failed", "failed to load section last order no")
 }
 
 type lessonRepository struct {
@@ -296,6 +308,10 @@ func (r *lessonRepository) FindAll(ctx context.Context, query domain.LessonQuery
 			Total: total,
 		},
 	}, nil
+}
+
+func (r *lessonRepository) FindLastOrderNo(ctx context.Context) (int, error) {
+	return findLastOrderNo(ctx, r.dbWithContext, &LessonModel{}, "find_lesson_last_order_no_failed", "failed to load lesson last order no")
 }
 
 func (r *lessonRepository) ExistsBySlug(ctx context.Context, sectionID uuid.UUID, slug string, excludeID *uuid.UUID) (bool, error) {
@@ -431,6 +447,10 @@ func (r *unitRepository) FindAll(ctx context.Context, query domain.UnitQuery) (d
 			Total: total,
 		},
 	}, nil
+}
+
+func (r *unitRepository) FindLastOrderNo(ctx context.Context) (int, error) {
+	return findLastOrderNo(ctx, r.dbWithContext, &UnitModel{}, "find_unit_last_order_no_failed", "failed to load unit last order no")
 }
 
 func (r *unitRepository) ExistsBySlug(ctx context.Context, lessonID uuid.UUID, slug string, excludeID *uuid.UUID) (bool, error) {
@@ -580,6 +600,10 @@ func (r *questionSetRepository) FindAll(ctx context.Context, query domain.Questi
 			Total: total,
 		},
 	}, nil
+}
+
+func (r *questionSetRepository) FindLastOrderNo(ctx context.Context) (int, error) {
+	return findLastOrderNo(ctx, r.dbWithContext, &QuestionSetModel{}, "find_question_set_last_order_no_failed", "failed to load question set last order no")
 }
 
 func (r *questionSetRepository) ExistsBySlugVersion(ctx context.Context, unitID uuid.UUID, slug string, version int, excludeID *uuid.UUID) (bool, error) {
@@ -884,6 +908,10 @@ func (r *questionRepository) ReplaceTags(ctx context.Context, questionID uuid.UU
 	}
 
 	return nil
+}
+
+func (r *questionRepository) FindLastOrderNo(ctx context.Context) (int, error) {
+	return findLastOrderNo(ctx, r.dbWithContext, &QuestionModel{}, "find_question_last_order_no_failed", "failed to load question last order no")
 }
 
 func (r *questionRepository) loadQuestionRelations(ctx context.Context, model QuestionModel, includeChoices bool, includeTags bool) (domain.Question, error) {

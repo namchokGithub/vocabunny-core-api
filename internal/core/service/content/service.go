@@ -15,6 +15,7 @@ type Dependencies struct {
 }
 
 type Service struct {
+	ContentOrder   port.ContentOrderService
 	Section        port.SectionService
 	Lesson         port.LessonService
 	Unit           port.UnitService
@@ -27,6 +28,13 @@ type Service struct {
 
 func NewService(deps Dependencies) *Service {
 	return &Service{
+		ContentOrder: NewContentOrderService(ContentOrderServiceDependencies{
+			SectionRepository:     deps.SectionRepository,
+			LessonRepository:      deps.LessonRepository,
+			UnitRepository:        deps.UnitRepository,
+			QuestionSetRepository: deps.QuestionSetRepository,
+			QuestionRepository:    deps.QuestionRepository,
+		}),
 		Section: NewSectionService(SectionServiceDependencies{
 			SectionRepository: deps.SectionRepository,
 			TxManager:         deps.TxManager,
