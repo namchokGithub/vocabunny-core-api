@@ -283,19 +283,22 @@ type QuestionChoiceQuery struct {
 }
 
 type Tag struct {
-	ID   uuid.UUID
-	Name string
+	ID    uuid.UUID
+	Name  string
+	Color string
 	AuditFields
 }
 
 type TagCreateInput struct {
 	Name    string
+	Color   string
 	ActorID string
 }
 
 type TagUpdateInput struct {
 	ID      uuid.UUID
 	Name    EntityField[string]
+	Color   EntityField[string]
 	ActorID string
 }
 

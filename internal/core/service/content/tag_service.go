@@ -25,7 +25,11 @@ func NewTagService(deps TagServiceDependencies) port.TagService {
 
 func (s *tagService) Create(ctx context.Context, input domain.TagCreateInput) (domain.Tag, error) {
 	input.Name = normalizeText(input.Name)
+	input.Color = normalizeText(input.Color)
 	if err := validateRequired(input.Name, "invalid_name", "name is required"); err != nil {
+		return domain.Tag{}, err
+	}
+	if err := validateHexColor(input.Color, "invalid_color", "color must be a valid HEX color like #60A5FA"); err != nil {
 		return domain.Tag{}, err
 	}
 
@@ -40,6 +44,7 @@ func (s *tagService) Create(ctx context.Context, input domain.TagCreateInput) (d
 		}
 		created, err = s.tagRepository.Create(txCtx, domain.Tag{
 			Name:        input.Name,
+			Color:       input.Color,
 			AuditFields: domain.AuditFields{CreatedBy: input.ActorID, UpdatedBy: input.ActorID},
 		})
 		return err
@@ -67,6 +72,12 @@ func (s *tagService) Update(ctx context.Context, input domain.TagUpdateInput) (d
 				if exists {
 					return helper.Conflict("duplicate_tag_name", "tag name already exists", nil)
 				}
+			}
+		}
+		if input.Color.Set {
+			input.Color.Value = normalizeText(input.Color.Value)
+			if err := validateHexColor(input.Color.Value, "invalid_color", "color must be a valid HEX color like #60A5FA"); err != nil {
+				return err
 			}
 		}
 		updated, err = s.tagRepository.Update(txCtx, input)

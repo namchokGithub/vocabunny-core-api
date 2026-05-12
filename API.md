@@ -705,7 +705,7 @@ Choices and tags are **always** returned on single GET regardless of `?include=`
     { "id": "uuid-c2", "question_id": "uuid-question", "choice_text": "Blue", "choice_order": 2, "is_correct": false }
   ],
   "tags": [
-    { "id": "uuid-tag-1", "name": "colors" }
+    { "id": "uuid-tag-1", "name": "colors", "color": "#60A5FA" }
   ],
   "created_at": "2026-01-01T00:00:00Z",
   "updated_at": "2026-01-01T00:00:00Z",
@@ -788,6 +788,7 @@ Manage individual answer choices independently of their parent question.
 > Scope: `bo` | Base path: `/api/v1/bo/content/tags`
 
 Tags are attached to questions for filtering and curriculum organization.
+Each tag can optionally define a HEX color for UI rendering.
 
 | Method | Path | Permission | Description |
 |--------|------|------------|-------------|
@@ -800,7 +801,28 @@ Tags are attached to questions for filtering and curriculum organization.
 ### `POST /bo/content/tags` — Request Body
 
 ```json
-{ "name": "animals" }
+{ "name": "animals", "color": "#60A5FA" }
+```
+
+### Tag Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Unique tag name used for categorization and search |
+| `color` | string | Optional HEX color in `#RRGGBB` format for UI display |
+
+### Tag Response Example
+
+```json
+{
+  "id": "uuid-tag-1",
+  "name": "animals",
+  "color": "#60A5FA",
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z",
+  "created_by": "uuid-user",
+  "updated_by": "uuid-user"
+}
 ```
 
 ---

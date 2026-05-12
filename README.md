@@ -9,6 +9,8 @@ Production-ready Go backend starter for an enterprise monolith pattern:
 
 `protocol -> handler -> service -> repository -> database`
 
+The content module manages a learning hierarchy of section, lesson, unit, question set, question, question choice, and tag. Tags support an optional `color` field in HEX format such as `#60A5FA` for UI presentation.
+
 Core design rules:
 
 - `domain` and `port` are the center of the system

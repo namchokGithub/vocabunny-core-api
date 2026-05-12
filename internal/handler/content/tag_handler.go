@@ -20,7 +20,11 @@ func (h *TagHandler) Create(c echo.Context) error {
 	if err := helper.BindAndValidate(c, &req); err != nil {
 		return helper.RespondError(c, err)
 	}
-	item, err := h.service.Create(c.Request().Context(), domain.TagCreateInput{Name: req.Name, ActorID: helper.ActorIDFromContext(c)})
+	item, err := h.service.Create(c.Request().Context(), domain.TagCreateInput{
+		Name:    req.Name,
+		Color:   strings.TrimSpace(req.Color),
+		ActorID: helper.ActorIDFromContext(c),
+	})
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
@@ -38,6 +42,9 @@ func (h *TagHandler) Update(c echo.Context) error {
 	input := domain.TagUpdateInput{ID: id, ActorID: helper.ActorIDFromContext(c)}
 	if req.Name != nil {
 		input.Name = domain.NewEntityField(strings.TrimSpace(*req.Name))
+	}
+	if req.Color != nil {
+		input.Color = domain.NewEntityField(strings.TrimSpace(*req.Color))
 	}
 	item, err := h.service.Update(c.Request().Context(), input)
 	if err != nil {

@@ -2,12 +2,15 @@ package content
 
 import (
 	"context"
+	"regexp"
 	"strings"
 
 	"github.com/google/uuid"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/domain"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
 )
+
+var hexColorPattern = regexp.MustCompile(`^#[0-9A-Fa-f]{6}$`)
 
 func normalizeSlug(value string) string {
 	return strings.TrimSpace(strings.ToLower(value))
@@ -19,6 +22,16 @@ func normalizeText(value string) string {
 
 func validateRequired(value string, code string, message string) error {
 	if strings.TrimSpace(value) == "" {
+		return helper.BadRequest(code, message, nil)
+	}
+	return nil
+}
+
+func validateHexColor(value string, code string, message string) error {
+	if value == "" {
+		return nil
+	}
+	if !hexColorPattern.MatchString(value) {
 		return helper.BadRequest(code, message, nil)
 	}
 	return nil

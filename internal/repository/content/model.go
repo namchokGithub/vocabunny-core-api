@@ -134,6 +134,7 @@ func (QuestionChoiceModel) TableName() string {
 type TagModel struct {
 	ID        uuid.UUID      `gorm:"column:id;type:uuid;default:gen_random_uuid();primaryKey"`
 	Name      string         `gorm:"column:name;size:255;uniqueIndex;not null"`
+	Color     string         `gorm:"column:color;size:7"`
 	CreatedBy string         `gorm:"column:created_by;size:255"`
 	UpdatedBy string         `gorm:"column:updated_by;size:255"`
 	CreatedAt time.Time      `gorm:"column:created_at;not null"`

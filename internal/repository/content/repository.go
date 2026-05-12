@@ -1122,6 +1122,7 @@ func (r *tagRepository) Create(ctx context.Context, tag domain.Tag) (domain.Tag,
 	model := TagModel{
 		ID:        tag.ID,
 		Name:      tag.Name,
+		Color:     tag.Color,
 		CreatedBy: tag.CreatedBy,
 		UpdatedBy: tag.UpdatedBy,
 		CreatedAt: now,
@@ -1143,6 +1144,9 @@ func (r *tagRepository) Update(ctx context.Context, input domain.TagUpdateInput)
 	}
 	if input.Name.Set {
 		model.Name = input.Name.Value
+	}
+	if input.Color.Set {
+		model.Color = input.Color.Value
 	}
 	model.UpdatedBy = input.ActorID
 	model.UpdatedAt = time.Now()
@@ -1342,6 +1346,7 @@ func toDomainTag(model TagModel) domain.Tag {
 	item := domain.Tag{
 		ID:          model.ID,
 		Name:        model.Name,
+		Color:       model.Color,
 		AuditFields: toAuditFields(model.CreatedAt, model.UpdatedAt, model.DeletedAt, model.CreatedBy, model.UpdatedBy),
 	}
 	return item

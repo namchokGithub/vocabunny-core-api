@@ -23,16 +23,20 @@ func TestTagHandlerCreate(t *testing.T) {
 			if input.Name != "grammar" {
 				t.Fatalf("expected tag name grammar, got %q", input.Name)
 			}
+			if input.Color != "#60A5FA" {
+				t.Fatalf("expected tag color #60A5FA, got %q", input.Color)
+			}
 			return domain.Tag{
 				ID:          tagID,
 				Name:        input.Name,
+				Color:       input.Color,
 				AuditFields: testAuditFields("actor-123"),
 			}, nil
 		},
 	}
 
 	handler := content.NewTagHandler(service)
-	rec := performJSONRequest(t, http.MethodPost, "/tags", `{"name":"grammar"}`, func(c echo.Context) error {
+	rec := performJSONRequest(t, http.MethodPost, "/tags", `{"name":"grammar","color":"#60A5FA"}`, func(c echo.Context) error {
 		c.Request().Header.Set("X-Actor-ID", "actor-123")
 		return handler.Create(c)
 	})
