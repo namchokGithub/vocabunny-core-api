@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/namchokGithub/vocabunny-core-api/internal/constants"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/domain"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/port"
@@ -51,7 +52,7 @@ func (s *questionSetService) Create(ctx context.Context, input domain.QuestionSe
 			return err
 		}
 		if exists {
-			return helper.Conflict("duplicate_question_set_slug", "question set slug and version already exist in this unit", nil)
+			return helper.Conflict(constants.CodeDuplicateSlug, "question set slug and version already exist in this unit", nil)
 		}
 		created, err = s.questionSetRepository.Create(txCtx, domain.QuestionSet{
 			UnitID:           input.UnitID,
@@ -113,7 +114,7 @@ func (s *questionSetService) Update(ctx context.Context, input domain.QuestionSe
 				return err
 			}
 			if exists {
-				return helper.Conflict("duplicate_question_set_slug", "question set slug and version already exist in this unit", nil)
+				return helper.Conflict(constants.CodeDuplicateSlug, "question set slug and version already exist in this unit", nil)
 			}
 		}
 		updated, err = s.questionSetRepository.Update(txCtx, input)

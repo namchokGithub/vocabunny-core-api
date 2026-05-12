@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/namchokGithub/vocabunny-core-api/internal/constants"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/domain"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/port"
@@ -40,7 +41,7 @@ func (s *sectionService) Create(ctx context.Context, input domain.SectionCreateI
 			return err
 		}
 		if exists {
-			return helper.Conflict("duplicate_section_slug", "section slug already exists", nil)
+			return helper.Conflict(constants.CodeDuplicateSlug, "section slug already exists", nil)
 		}
 		created, err = s.sectionRepository.Create(txCtx, domain.Section{
 			Slug:        input.Slug,
@@ -73,7 +74,7 @@ func (s *sectionService) Update(ctx context.Context, input domain.SectionUpdateI
 					return err
 				}
 				if exists {
-					return helper.Conflict("duplicate_section_slug", "section slug already exists", nil)
+					return helper.Conflict(constants.CodeDuplicateSlug, "section slug already exists", nil)
 				}
 			}
 		}

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/namchokGithub/vocabunny-core-api/internal/constants"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/domain"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/port"
@@ -48,7 +49,7 @@ func (s *unitService) Create(ctx context.Context, input domain.UnitCreateInput) 
 			return err
 		}
 		if exists {
-			return helper.Conflict("duplicate_unit_slug", "unit slug already exists in this lesson", nil)
+			return helper.Conflict(constants.CodeDuplicateSlug, "unit slug already exists in this lesson", nil)
 		}
 		created, err = s.unitRepository.Create(txCtx, domain.Unit{
 			LessonID:    input.LessonID,
@@ -101,7 +102,7 @@ func (s *unitService) Update(ctx context.Context, input domain.UnitUpdateInput) 
 				return err
 			}
 			if exists {
-				return helper.Conflict("duplicate_unit_slug", "unit slug already exists in this lesson", nil)
+				return helper.Conflict(constants.CodeDuplicateSlug, "unit slug already exists in this lesson", nil)
 			}
 		}
 		updated, err = s.unitRepository.Update(txCtx, input)

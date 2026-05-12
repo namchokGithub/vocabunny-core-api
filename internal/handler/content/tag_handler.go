@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/namchokGithub/vocabunny-core-api/internal/constants"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/domain"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/port"
@@ -23,12 +24,12 @@ func (h *TagHandler) Create(c echo.Context) error {
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusCreated, toTagResponse(item))
+	return helper.RespondSuccess(c, http.StatusCreated, toTagResponse(item), constants.CodeCreated)
 }
 func (h *TagHandler) Update(c echo.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return helper.RespondError(c, helper.BadRequest("invalid_tag_id", "tag id must be a valid uuid", err))
+		return helper.RespondError(c, helper.BadRequest(constants.CodeInvalidQueryParam, "tag id must be a valid uuid", err))
 	}
 	var req UpdateTagRequest
 	if err := helper.BindAndValidate(c, &req); err != nil {
@@ -42,28 +43,28 @@ func (h *TagHandler) Update(c echo.Context) error {
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusOK, toTagResponse(item))
+	return helper.RespondSuccess(c, http.StatusOK, toTagResponse(item), constants.CodeUpdated)
 }
 func (h *TagHandler) Delete(c echo.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return helper.RespondError(c, helper.BadRequest("invalid_tag_id", "tag id must be a valid uuid", err))
+		return helper.RespondError(c, helper.BadRequest(constants.CodeInvalidQueryParam, "tag id must be a valid uuid", err))
 	}
 	if err := h.service.Delete(c.Request().Context(), id, helper.ActorIDFromContext(c)); err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusOK, map[string]string{"id": id.String(), "status": "deleted"})
+	return helper.RespondSuccess(c, http.StatusOK, map[string]string{"id": id.String(), "status": "deleted"}, constants.CodeDeleted)
 }
 func (h *TagHandler) FindByID(c echo.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return helper.RespondError(c, helper.BadRequest("invalid_tag_id", "tag id must be a valid uuid", err))
+		return helper.RespondError(c, helper.BadRequest(constants.CodeInvalidQueryParam, "tag id must be a valid uuid", err))
 	}
 	item, err := h.service.FindByID(c.Request().Context(), id)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusOK, toTagResponse(item))
+	return helper.RespondSuccess(c, http.StatusOK, toTagResponse(item), constants.CodeSuccess)
 }
 func (h *TagHandler) FindAll(c echo.Context) error {
 	query := domain.TagQuery{Paging: helper.BuildPaging(c), Search: strings.TrimSpace(c.QueryParam("search"))}
@@ -76,5 +77,5 @@ func (h *TagHandler) FindAll(c echo.Context) error {
 	for _, item := range result.Items {
 		items = append(items, toTagResponse(item))
 	}
-	return helper.RespondSuccess(c, http.StatusOK, ListResponse[TagResponse, domain.TagQuery]{Items: items, Paging: helper.NewPagingResponse(result.Paging), Query: query})
+	return helper.RespondSuccess(c, http.StatusOK, ListResponse[TagResponse, domain.TagQuery]{Items: items, Paging: helper.NewPagingResponse(result.Paging), Query: query}, constants.CodeSuccess)
 }

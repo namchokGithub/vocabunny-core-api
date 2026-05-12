@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
+	"github.com/namchokGithub/vocabunny-core-api/internal/constants"
 )
 
 type RequestValidator struct {
@@ -19,7 +20,7 @@ func NewRequestValidator() *RequestValidator {
 
 func (v *RequestValidator) Validate(i interface{}) error {
 	if err := v.validate.Struct(i); err != nil {
-		return BadRequest("validation_error", err.Error(), err)
+		return BadRequest(constants.CodeValidationFailed, err.Error(), err)
 	}
 
 	return nil
@@ -27,12 +28,12 @@ func (v *RequestValidator) Validate(i interface{}) error {
 
 func BindAndValidate(c echo.Context, payload interface{}) error {
 	if err := c.Bind(payload); err != nil {
-		return BadRequest("invalid_request", "invalid request payload", err)
+		return BadRequest(constants.CodeInvalidRequestBody, "invalid request payload", err)
 	}
 
 	validatorInstance, ok := c.Echo().Validator.(*RequestValidator)
 	if !ok {
-		return Internal("validator_unavailable", "validator is not configured", nil)
+		return Internal(constants.CodeInternalError, "validator is not configured", nil)
 	}
 
 	if err := validatorInstance.Validate(payload); err != nil {

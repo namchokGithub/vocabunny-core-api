@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/namchokGithub/vocabunny-core-api/internal/constants"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/domain"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/port"
@@ -57,13 +58,13 @@ func (h *MediaAssetHandler) Create(c echo.Context) error {
 		return helper.RespondError(c, err)
 	}
 
-	return helper.RespondSuccess(c, http.StatusCreated, toMediaAssetResponse(item))
+	return helper.RespondSuccess(c, http.StatusCreated, toMediaAssetResponse(item), constants.CodeCreated)
 }
 
 func (h *MediaAssetHandler) Update(c echo.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return helper.RespondError(c, helper.BadRequest("invalid_media_asset_id", "media asset id must be a valid uuid", err))
+		return helper.RespondError(c, helper.BadRequest(constants.CodeInvalidQueryParam, "media asset id must be a valid uuid", err))
 	}
 
 	var req UpdateMediaAssetRequest
@@ -136,30 +137,30 @@ func (h *MediaAssetHandler) Update(c echo.Context) error {
 		return helper.RespondError(c, err)
 	}
 
-	return helper.RespondSuccess(c, http.StatusOK, toMediaAssetResponse(item))
+	return helper.RespondSuccess(c, http.StatusOK, toMediaAssetResponse(item), constants.CodeUpdated)
 }
 
 func (h *MediaAssetHandler) Delete(c echo.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return helper.RespondError(c, helper.BadRequest("invalid_media_asset_id", "media asset id must be a valid uuid", err))
+		return helper.RespondError(c, helper.BadRequest(constants.CodeInvalidQueryParam, "media asset id must be a valid uuid", err))
 	}
 	if err := h.service.Delete(c.Request().Context(), id, helper.ActorIDFromContext(c)); err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusOK, map[string]string{"id": id.String(), "status": "deleted"})
+	return helper.RespondSuccess(c, http.StatusOK, map[string]string{"id": id.String(), "status": "deleted"}, constants.CodeDeleted)
 }
 
 func (h *MediaAssetHandler) FindByID(c echo.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return helper.RespondError(c, helper.BadRequest("invalid_media_asset_id", "media asset id must be a valid uuid", err))
+		return helper.RespondError(c, helper.BadRequest(constants.CodeInvalidQueryParam, "media asset id must be a valid uuid", err))
 	}
 	item, err := h.service.FindByID(c.Request().Context(), id)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusOK, toMediaAssetResponse(item))
+	return helper.RespondSuccess(c, http.StatusOK, toMediaAssetResponse(item), constants.CodeSuccess)
 }
 
 func (h *MediaAssetHandler) FindAll(c echo.Context) error {
@@ -230,7 +231,7 @@ func (h *MediaAssetHandler) FindAll(c echo.Context) error {
 		Items:  items,
 		Paging: helper.NewPagingResponse(result.Paging),
 		Query:  query,
-	})
+	}, constants.CodeSuccess)
 }
 
 func parseOptionalStorageProvider(value *string) (*domain.StorageProvider, error) {
@@ -257,7 +258,7 @@ func parseMediaAssetType(value string) (domain.MediaAssetType, error) {
 	case domain.MediaAssetTypeImage, domain.MediaAssetTypeVideo, domain.MediaAssetTypeDocument:
 		return parsed, nil
 	default:
-		return "", helper.BadRequest("invalid_asset_type", "asset_type is invalid", nil)
+		return "", helper.BadRequest(constants.CodeInvalidQueryParam, "asset_type is invalid", nil)
 	}
 }
 
@@ -267,7 +268,7 @@ func parseMediaPurposeType(value string) (domain.MediaPurposeType, error) {
 	case domain.MediaPurposeAvatar, domain.MediaPurposeQuestionImage, domain.MediaPurposeBadgeIcon, domain.MediaPurposeTrophyIcon, domain.MediaPurposeBanner:
 		return parsed, nil
 	default:
-		return "", helper.BadRequest("invalid_purpose", "purpose is invalid", nil)
+		return "", helper.BadRequest(constants.CodeInvalidQueryParam, "purpose is invalid", nil)
 	}
 }
 
@@ -277,7 +278,7 @@ func parseStorageMode(value string) (domain.StorageMode, error) {
 	case domain.StorageModeExternal, domain.StorageModeDatabase:
 		return parsed, nil
 	default:
-		return "", helper.BadRequest("invalid_storage_mode", "storage_mode is invalid", nil)
+		return "", helper.BadRequest(constants.CodeInvalidQueryParam, "storage_mode is invalid", nil)
 	}
 }
 
@@ -287,6 +288,6 @@ func parseStorageProvider(value string) (domain.StorageProvider, error) {
 	case domain.StorageProviderS3, domain.StorageProviderR2, domain.StorageProviderGCS, domain.StorageProviderLocal:
 		return parsed, nil
 	default:
-		return "", helper.BadRequest("invalid_storage_provider", "storage_provider is invalid", nil)
+		return "", helper.BadRequest(constants.CodeInvalidQueryParam, "storage_provider is invalid", nil)
 	}
 }

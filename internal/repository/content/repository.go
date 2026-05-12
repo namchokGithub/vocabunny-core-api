@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/namchokGithub/vocabunny-core-api/internal/constants"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/domain"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/port"
@@ -93,7 +94,7 @@ func (r *sectionRepository) Create(ctx context.Context, section domain.Section) 
 func (r *sectionRepository) Update(ctx context.Context, input domain.SectionUpdateInput) (domain.Section, error) {
 	var model SectionModel
 	if err := r.dbWithContext(ctx).First(&model, "id = ?", input.ID).Error; err != nil {
-		return domain.Section{}, mapGormNotFound(err, "section_not_found", "section not found", "find_section_failed", "failed to load section")
+		return domain.Section{}, mapGormNotFound(err, constants.CodeSectionNotFound, "section not found", constants.CodeInternalError, "failed to load section")
 	}
 	if input.Slug.Set {
 		model.Slug = input.Slug.Value
@@ -132,7 +133,7 @@ func (r *sectionRepository) Delete(ctx context.Context, id uuid.UUID, actorID st
 func (r *sectionRepository) FindByID(ctx context.Context, id uuid.UUID) (domain.Section, error) {
 	var model SectionModel
 	if err := r.dbWithContext(ctx).First(&model, "id = ?", id).Error; err != nil {
-		return domain.Section{}, mapGormNotFound(err, "section_not_found", "section not found", "find_section_failed", "failed to find section")
+		return domain.Section{}, mapGormNotFound(err, constants.CodeSectionNotFound, "section not found", constants.CodeInternalError, "failed to find section")
 	}
 	return toDomainSection(model), nil
 }
@@ -218,7 +219,7 @@ func (r *lessonRepository) Create(ctx context.Context, lesson domain.Lesson) (do
 func (r *lessonRepository) Update(ctx context.Context, input domain.LessonUpdateInput) (domain.Lesson, error) {
 	var model LessonModel
 	if err := r.dbWithContext(ctx).First(&model, "id = ?", input.ID).Error; err != nil {
-		return domain.Lesson{}, mapGormNotFound(err, "lesson_not_found", "lesson not found", "find_lesson_failed", "failed to load lesson")
+		return domain.Lesson{}, mapGormNotFound(err, constants.CodeLessonNotFound, "lesson not found", constants.CodeInternalError, "failed to load lesson")
 	}
 	if input.SectionID.Set {
 		model.SectionID = input.SectionID.Value
@@ -264,7 +265,7 @@ func (r *lessonRepository) FindByID(ctx context.Context, id uuid.UUID, includes 
 	}
 	var model LessonModel
 	if err := db.First(&model, "id = ?", id).Error; err != nil {
-		return domain.Lesson{}, mapGormNotFound(err, "lesson_not_found", "lesson not found", "find_lesson_failed", "failed to find lesson")
+		return domain.Lesson{}, mapGormNotFound(err, constants.CodeLessonNotFound, "lesson not found", constants.CodeInternalError, "failed to find lesson")
 	}
 	return toDomainLesson(model), nil
 }
@@ -365,7 +366,7 @@ func (r *unitRepository) Create(ctx context.Context, unit domain.Unit) (domain.U
 func (r *unitRepository) Update(ctx context.Context, input domain.UnitUpdateInput) (domain.Unit, error) {
 	var model UnitModel
 	if err := r.dbWithContext(ctx).First(&model, "id = ?", input.ID).Error; err != nil {
-		return domain.Unit{}, mapGormNotFound(err, "unit_not_found", "unit not found", "find_unit_failed", "failed to load unit")
+		return domain.Unit{}, mapGormNotFound(err, constants.CodeUnitNotFound, "unit not found", constants.CodeInternalError, "failed to load unit")
 	}
 	if input.LessonID.Set {
 		model.LessonID = input.LessonID.Value
@@ -411,7 +412,7 @@ func (r *unitRepository) FindByID(ctx context.Context, id uuid.UUID, includes do
 	}
 	var model UnitModel
 	if err := db.First(&model, "id = ?", id).Error; err != nil {
-		return domain.Unit{}, mapGormNotFound(err, "unit_not_found", "unit not found", "find_unit_failed", "failed to find unit")
+		return domain.Unit{}, mapGormNotFound(err, constants.CodeUnitNotFound, "unit not found", constants.CodeInternalError, "failed to find unit")
 	}
 	return toDomainUnit(model), nil
 }
@@ -517,7 +518,7 @@ func (r *questionSetRepository) Create(ctx context.Context, questionSet domain.Q
 func (r *questionSetRepository) Update(ctx context.Context, input domain.QuestionSetUpdateInput) (domain.QuestionSet, error) {
 	var model QuestionSetModel
 	if err := r.dbWithContext(ctx).First(&model, "id = ?", input.ID).Error; err != nil {
-		return domain.QuestionSet{}, mapGormNotFound(err, "question_set_not_found", "question set not found", "find_question_set_failed", "failed to load question set")
+		return domain.QuestionSet{}, mapGormNotFound(err, constants.CodeQuestionSetNotFound, "question set not found", constants.CodeInternalError, "failed to load question set")
 	}
 	if input.UnitID.Set {
 		model.UnitID = input.UnitID.Value
@@ -572,7 +573,7 @@ func (r *questionSetRepository) FindByID(ctx context.Context, id uuid.UUID, incl
 	}
 	var model QuestionSetModel
 	if err := db.First(&model, "id = ?", id).Error; err != nil {
-		return domain.QuestionSet{}, mapGormNotFound(err, "question_set_not_found", "question set not found", "find_question_set_failed", "failed to find question set")
+		return domain.QuestionSet{}, mapGormNotFound(err, constants.CodeQuestionSetNotFound, "question set not found", constants.CodeInternalError, "failed to find question set")
 	}
 	return toDomainQuestionSet(model), nil
 }
@@ -685,7 +686,7 @@ func (r *questionRepository) Create(ctx context.Context, question domain.Questio
 func (r *questionRepository) Update(ctx context.Context, input domain.QuestionUpdateInput) (domain.Question, error) {
 	var model QuestionModel
 	if err := r.dbWithContext(ctx).First(&model, "id = ?", input.ID).Error; err != nil {
-		return domain.Question{}, mapGormNotFound(err, "question_not_found", "question not found", "find_question_failed", "failed to load question")
+		return domain.Question{}, mapGormNotFound(err, constants.CodeQuestionNotFound, "question not found", constants.CodeInternalError, "failed to load question")
 	}
 	if input.QuestionSetID.Set {
 		model.QuestionSetID = input.QuestionSetID.Value
@@ -741,7 +742,7 @@ func (r *questionRepository) FindByID(ctx context.Context, id uuid.UUID, include
 	}
 	var model QuestionModel
 	if err := db.First(&model, "id = ?", id).Error; err != nil {
-		return domain.Question{}, mapGormNotFound(err, "question_not_found", "question not found", "find_question_failed", "failed to find question")
+		return domain.Question{}, mapGormNotFound(err, constants.CodeQuestionNotFound, "question not found", constants.CodeInternalError, "failed to find question")
 	}
 	// FindByID always loads choices and tags for a complete single-item response.
 	return r.loadQuestionRelations(ctx, model, true, true)

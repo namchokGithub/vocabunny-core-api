@@ -46,7 +46,7 @@ type lessonServiceStub struct {
 	createFn   func(ctx context.Context, input domain.LessonCreateInput) (domain.Lesson, error)
 	updateFn   func(ctx context.Context, input domain.LessonUpdateInput) (domain.Lesson, error)
 	deleteFn   func(ctx context.Context, id uuid.UUID, actorID string) error
-	findByIDFn func(ctx context.Context, id uuid.UUID) (domain.Lesson, error)
+	findByIDFn func(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.Lesson, error)
 	findAllFn  func(ctx context.Context, query domain.LessonQuery) (domain.PageResult[domain.Lesson], error)
 }
 
@@ -62,8 +62,8 @@ func (s *lessonServiceStub) Delete(ctx context.Context, id uuid.UUID, actorID st
 	return s.deleteFn(ctx, id, actorID)
 }
 
-func (s *lessonServiceStub) FindByID(ctx context.Context, id uuid.UUID) (domain.Lesson, error) {
-	return s.findByIDFn(ctx, id)
+func (s *lessonServiceStub) FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.Lesson, error) {
+	return s.findByIDFn(ctx, id, includes)
 }
 
 func (s *lessonServiceStub) FindAll(ctx context.Context, query domain.LessonQuery) (domain.PageResult[domain.Lesson], error) {
@@ -74,7 +74,7 @@ type unitServiceStub struct {
 	createFn   func(ctx context.Context, input domain.UnitCreateInput) (domain.Unit, error)
 	updateFn   func(ctx context.Context, input domain.UnitUpdateInput) (domain.Unit, error)
 	deleteFn   func(ctx context.Context, id uuid.UUID, actorID string) error
-	findByIDFn func(ctx context.Context, id uuid.UUID) (domain.Unit, error)
+	findByIDFn func(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.Unit, error)
 	findAllFn  func(ctx context.Context, query domain.UnitQuery) (domain.PageResult[domain.Unit], error)
 }
 
@@ -90,8 +90,8 @@ func (s *unitServiceStub) Delete(ctx context.Context, id uuid.UUID, actorID stri
 	return s.deleteFn(ctx, id, actorID)
 }
 
-func (s *unitServiceStub) FindByID(ctx context.Context, id uuid.UUID) (domain.Unit, error) {
-	return s.findByIDFn(ctx, id)
+func (s *unitServiceStub) FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.Unit, error) {
+	return s.findByIDFn(ctx, id, includes)
 }
 
 func (s *unitServiceStub) FindAll(ctx context.Context, query domain.UnitQuery) (domain.PageResult[domain.Unit], error) {
@@ -102,7 +102,7 @@ type questionSetServiceStub struct {
 	createFn   func(ctx context.Context, input domain.QuestionSetCreateInput) (domain.QuestionSet, error)
 	updateFn   func(ctx context.Context, input domain.QuestionSetUpdateInput) (domain.QuestionSet, error)
 	deleteFn   func(ctx context.Context, id uuid.UUID, actorID string) error
-	findByIDFn func(ctx context.Context, id uuid.UUID) (domain.QuestionSet, error)
+	findByIDFn func(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.QuestionSet, error)
 	findAllFn  func(ctx context.Context, query domain.QuestionSetQuery) (domain.PageResult[domain.QuestionSet], error)
 }
 
@@ -118,8 +118,8 @@ func (s *questionSetServiceStub) Delete(ctx context.Context, id uuid.UUID, actor
 	return s.deleteFn(ctx, id, actorID)
 }
 
-func (s *questionSetServiceStub) FindByID(ctx context.Context, id uuid.UUID) (domain.QuestionSet, error) {
-	return s.findByIDFn(ctx, id)
+func (s *questionSetServiceStub) FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.QuestionSet, error) {
+	return s.findByIDFn(ctx, id, includes)
 }
 
 func (s *questionSetServiceStub) FindAll(ctx context.Context, query domain.QuestionSetQuery) (domain.PageResult[domain.QuestionSet], error) {
@@ -130,7 +130,7 @@ type questionServiceStub struct {
 	createFn   func(ctx context.Context, input domain.QuestionCreateInput) (domain.Question, error)
 	updateFn   func(ctx context.Context, input domain.QuestionUpdateInput) (domain.Question, error)
 	deleteFn   func(ctx context.Context, id uuid.UUID, actorID string) error
-	findByIDFn func(ctx context.Context, id uuid.UUID) (domain.Question, error)
+	findByIDFn func(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.Question, error)
 	findAllFn  func(ctx context.Context, query domain.QuestionQuery) (domain.PageResult[domain.Question], error)
 }
 
@@ -146,8 +146,8 @@ func (s *questionServiceStub) Delete(ctx context.Context, id uuid.UUID, actorID 
 	return s.deleteFn(ctx, id, actorID)
 }
 
-func (s *questionServiceStub) FindByID(ctx context.Context, id uuid.UUID) (domain.Question, error) {
-	return s.findByIDFn(ctx, id)
+func (s *questionServiceStub) FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.Question, error) {
+	return s.findByIDFn(ctx, id, includes)
 }
 
 func (s *questionServiceStub) FindAll(ctx context.Context, query domain.QuestionQuery) (domain.PageResult[domain.Question], error) {

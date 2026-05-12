@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/namchokGithub/vocabunny-core-api/internal/constants"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/domain"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/port"
@@ -29,12 +30,12 @@ func (h *QuestionChoiceHandler) Create(c echo.Context) error {
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusCreated, toQuestionChoiceResponse(item))
+	return helper.RespondSuccess(c, http.StatusCreated, toQuestionChoiceResponse(item), constants.CodeCreated)
 }
 func (h *QuestionChoiceHandler) Update(c echo.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return helper.RespondError(c, helper.BadRequest("invalid_question_choice_id", "question choice id must be a valid uuid", err))
+		return helper.RespondError(c, helper.BadRequest(constants.CodeInvalidQueryParam, "question choice id must be a valid uuid", err))
 	}
 	var req UpdateQuestionChoiceRequest
 	if err := helper.BindAndValidate(c, &req); err != nil {
@@ -54,28 +55,28 @@ func (h *QuestionChoiceHandler) Update(c echo.Context) error {
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusOK, toQuestionChoiceResponse(item))
+	return helper.RespondSuccess(c, http.StatusOK, toQuestionChoiceResponse(item), constants.CodeUpdated)
 }
 func (h *QuestionChoiceHandler) Delete(c echo.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return helper.RespondError(c, helper.BadRequest("invalid_question_choice_id", "question choice id must be a valid uuid", err))
+		return helper.RespondError(c, helper.BadRequest(constants.CodeInvalidQueryParam, "question choice id must be a valid uuid", err))
 	}
 	if err := h.service.Delete(c.Request().Context(), id, helper.ActorIDFromContext(c)); err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusOK, map[string]string{"id": id.String(), "status": "deleted"})
+	return helper.RespondSuccess(c, http.StatusOK, map[string]string{"id": id.String(), "status": "deleted"}, constants.CodeDeleted)
 }
 func (h *QuestionChoiceHandler) FindByID(c echo.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return helper.RespondError(c, helper.BadRequest("invalid_question_choice_id", "question choice id must be a valid uuid", err))
+		return helper.RespondError(c, helper.BadRequest(constants.CodeInvalidQueryParam, "question choice id must be a valid uuid", err))
 	}
 	item, err := h.service.FindByID(c.Request().Context(), id)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusOK, toQuestionChoiceResponse(item))
+	return helper.RespondSuccess(c, http.StatusOK, toQuestionChoiceResponse(item), constants.CodeSuccess)
 }
 func (h *QuestionChoiceHandler) FindAll(c echo.Context) error {
 	query := domain.QuestionChoiceQuery{Paging: helper.BuildPaging(c)}
@@ -95,5 +96,5 @@ func (h *QuestionChoiceHandler) FindAll(c echo.Context) error {
 	for _, item := range result.Items {
 		items = append(items, toQuestionChoiceResponse(item))
 	}
-	return helper.RespondSuccess(c, http.StatusOK, ListResponse[QuestionChoiceResponse, domain.QuestionChoiceQuery]{Items: items, Paging: helper.NewPagingResponse(result.Paging), Query: query})
+	return helper.RespondSuccess(c, http.StatusOK, ListResponse[QuestionChoiceResponse, domain.QuestionChoiceQuery]{Items: items, Paging: helper.NewPagingResponse(result.Paging), Query: query}, constants.CodeSuccess)
 }

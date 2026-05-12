@@ -25,6 +25,7 @@ All protected endpoints require a `Bearer` JWT token in the `Authorization` head
 - [Content — Media Assets (BO)](#content--media-assets-bo)
 - [WebSocket](#websocket)
 - [Common Structures](#common-structures)
+- [Response Codes](#response-codes)
 - [Auth & Permissions Reference](#auth--permissions-reference)
 
 ---
@@ -864,7 +865,39 @@ The server initialises a WebSocket manager (`app.Websocket`) but **no public Web
 
 ## Common Structures
 
-### Paginated List Response
+### Success Response
+
+All successful responses share this envelope:
+
+```json
+{
+  "success": true,
+  "data": {},
+  "meta": {
+    "code": "vocab-qa-2001"
+  }
+}
+```
+
+`meta.code` is always present. `data` is omitted when there is nothing to return.
+
+### Error Response
+
+All error responses share this envelope:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "vocab-qa-4201",
+    "message": "section not found"
+  }
+}
+```
+
+HTTP status codes are used normally (200, 201, 400, 401, 403, 404, 409, 500). `error.code` is additional metadata and does **not** replace the HTTP status.
+
+### Paginated List Response (`data` field)
 
 ```json
 {
@@ -881,22 +914,147 @@ The server initialises a WebSocket manager (`app.Websocket`) but **no public Web
 
 `total_pages` is calculated from `total` and `limit`. When `total` is `0`, `total_pages` is also `0`.
 
-### Delete Response
+### Delete Response (`data` field)
 
 ```json
 { "id": "uuid", "status": "deleted" }
 ```
 
-### Error Response
+---
 
-Standard HTTP status codes. Body shape varies by error type (validation errors include a `details` array).
+## Response Codes
 
+### Format
+
+```
+vocab-{env}-{code}
+```
+
+`{env}` is set by the `APP_ENV` environment variable (e.g. `local`, `dev`, `qa`, `uat`, `prod`).
+
+**Examples:**
+
+| Environment | Example code |
+|-------------|-------------|
+| `dev` | `vocab-dev-2001` |
+| `qa` | `vocab-qa-4201` |
+| `prod` | `vocab-prod-5001` |
+
+### HTTP status vs business code
+
+HTTP status expresses the outcome class (2xx, 4xx, 5xx). The business code in `meta.code` / `error.code` provides fine-grained categorization for client-side handling and log correlation. Never substitute one for the other.
+
+### Success Codes
+
+| Code | Meaning |
+|------|---------|
+| `2000` | Generic success |
+| `2001` | Created successfully |
+| `2002` | Updated successfully |
+| `2003` | Deleted successfully |
+| `2004` | Published successfully |
+| `2005` | Login successful |
+
+### Validation Codes
+
+| Code | Meaning |
+|------|---------|
+| `4001` | Validation failed |
+| `4002` | Invalid request body |
+| `4003` | Invalid pagination |
+| `4004` | Invalid query parameter |
+
+### Auth / Identity Codes
+
+| Code | Meaning |
+|------|---------|
+| `4101` | Invalid token |
+| `4102` | Expired token |
+| `4103` | Invalid credentials |
+| `4104` | Invalid scope |
+| `4301` | Permission denied |
+
+### Content Codes
+
+| Code | Meaning |
+|------|---------|
+| `4201` | Section not found |
+| `4202` | Lesson not found |
+| `4203` | Unit not found |
+| `4204` | Question set not found |
+| `4205` | Question not found |
+| `4206` | Invalid include parameter |
+| `4207` | Duplicate slug |
+| `4208` | Invalid publish state |
+
+### Conflict Codes
+
+| Code | Meaning |
+|------|---------|
+| `4901` | Duplicate resource |
+| `4902` | Concurrent update conflict |
+
+### Internal / System Codes
+
+| Code | Meaning |
+|------|---------|
+| `5001` | Internal server error |
+| `5002` | Database transaction failed |
+| `5003` | Unexpected repository error |
+| `5004` | External service unavailable |
+
+### Response Examples
+
+**Success — created:**
 ```json
 {
-  "message": "validation failed",
-  "details": [
-    { "field": "email", "error": "must be a valid email address" }
-  ]
+  "success": true,
+  "data": { "id": "...", "slug": "intro" },
+  "meta": { "code": "vocab-qa-2001" }
+}
+```
+
+**Validation error (400):**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "vocab-qa-4001",
+    "message": "Key: 'CreateSectionRequest.Slug' Error:Field validation for 'Slug' failed on the 'required' tag"
+  }
+}
+```
+
+**Not found (404):**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "vocab-qa-4201",
+    "message": "section not found"
+  }
+}
+```
+
+**Unauthorized (401):**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "vocab-qa-4101",
+    "message": "invalid token"
+  }
+}
+```
+
+**Internal server error (500):**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "vocab-qa-5001",
+    "message": "internal server error"
+  }
 }
 ```
 

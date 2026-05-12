@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/namchokGithub/vocabunny-core-api/internal/constants"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/port"
 )
@@ -19,5 +20,5 @@ func (h *ContentOrderHandler) GetLastOrderNos(c echo.Context) error {
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusOK, toContentOrderNoResponse(item))
+	return helper.RespondSuccess(c, http.StatusOK, toContentOrderNoResponse(item), constants.CodeSuccess)
 }

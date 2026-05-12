@@ -114,7 +114,7 @@ func TestQuestionHandlerFindAllBuildsQuery(t *testing.T) {
 	}
 
 	handler := content.NewQuestionHandler(service)
-	target := "/questions?search=%20correct%20&question_set_id=" + questionSetID.String() + "&type=MULTIPLE_CHOICE&is_active=true&include_choices=false&include_tags=false&sort_by=order_no&sort_order=desc&page=2&limit=8"
+	target := "/questions?search=%20correct%20&question_set_id=" + questionSetID.String() + "&type=MULTIPLE_CHOICE&is_active=true&include=question_set,tags&sort_by=order_no&sort_order=desc&page=2&limit=8"
 	rec := performJSONRequest(t, http.MethodGet, target, "", func(c echo.Context) error {
 		return handler.FindAll(c)
 	})
@@ -131,7 +131,7 @@ func TestQuestionHandlerFindAllBuildsQuery(t *testing.T) {
 	if captured.IsActive == nil || !*captured.IsActive {
 		t.Fatalf("unexpected active filter: %#v", captured.IsActive)
 	}
-	if captured.IncludeChoices || captured.IncludeTags {
-		t.Fatalf("unexpected includes: choices=%v tags=%v", captured.IncludeChoices, captured.IncludeTags)
+	if !captured.Includes.Has("question_set") || !captured.Includes.Has("tags") {
+		t.Fatalf("unexpected includes: %#v", captured.Includes)
 	}
 }
