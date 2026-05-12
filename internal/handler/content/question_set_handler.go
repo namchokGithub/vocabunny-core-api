@@ -91,14 +91,15 @@ func (h *QuestionSetHandler) FindByID(c echo.Context) error {
 	if err != nil {
 		return helper.RespondError(c, helper.BadRequest("invalid_question_set_id", "question set id must be a valid uuid", err))
 	}
-	item, err := h.service.FindByID(c.Request().Context(), id)
+	includes := domain.ParseIncludes(c.QueryParam("include"))
+	item, err := h.service.FindByID(c.Request().Context(), id, includes)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
 	return helper.RespondSuccess(c, http.StatusOK, toQuestionSetResponse(item))
 }
 func (h *QuestionSetHandler) FindAll(c echo.Context) error {
-	query := domain.QuestionSetQuery{Paging: helper.BuildPaging(c), Search: strings.TrimSpace(c.QueryParam("search"))}
+	query := domain.QuestionSetQuery{Paging: helper.BuildPaging(c), Search: strings.TrimSpace(c.QueryParam("search")), Includes: domain.ParseIncludes(c.QueryParam("include"))}
 	query.SortBy, query.SortOrder = helper.BuildSort(c)
 	if value := strings.TrimSpace(c.QueryParam("unit_id")); value != "" {
 		parsed, err := parseUUID(value, "unit_id")

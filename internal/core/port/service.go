@@ -52,7 +52,7 @@ type LessonService interface {
 	Create(ctx context.Context, input domain.LessonCreateInput) (domain.Lesson, error)
 	Update(ctx context.Context, input domain.LessonUpdateInput) (domain.Lesson, error)
 	Delete(ctx context.Context, id uuid.UUID, actorID string) error
-	FindByID(ctx context.Context, id uuid.UUID) (domain.Lesson, error)
+	FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.Lesson, error)
 	FindAll(ctx context.Context, query domain.LessonQuery) (domain.PageResult[domain.Lesson], error)
 }
 
@@ -60,7 +60,7 @@ type UnitService interface {
 	Create(ctx context.Context, input domain.UnitCreateInput) (domain.Unit, error)
 	Update(ctx context.Context, input domain.UnitUpdateInput) (domain.Unit, error)
 	Delete(ctx context.Context, id uuid.UUID, actorID string) error
-	FindByID(ctx context.Context, id uuid.UUID) (domain.Unit, error)
+	FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.Unit, error)
 	FindAll(ctx context.Context, query domain.UnitQuery) (domain.PageResult[domain.Unit], error)
 }
 
@@ -68,7 +68,7 @@ type QuestionSetService interface {
 	Create(ctx context.Context, input domain.QuestionSetCreateInput) (domain.QuestionSet, error)
 	Update(ctx context.Context, input domain.QuestionSetUpdateInput) (domain.QuestionSet, error)
 	Delete(ctx context.Context, id uuid.UUID, actorID string) error
-	FindByID(ctx context.Context, id uuid.UUID) (domain.QuestionSet, error)
+	FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.QuestionSet, error)
 	FindAll(ctx context.Context, query domain.QuestionSetQuery) (domain.PageResult[domain.QuestionSet], error)
 }
 
@@ -76,7 +76,7 @@ type QuestionService interface {
 	Create(ctx context.Context, input domain.QuestionCreateInput) (domain.Question, error)
 	Update(ctx context.Context, input domain.QuestionUpdateInput) (domain.Question, error)
 	Delete(ctx context.Context, id uuid.UUID, actorID string) error
-	FindByID(ctx context.Context, id uuid.UUID) (domain.Question, error)
+	FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.Question, error)
 	FindAll(ctx context.Context, query domain.QuestionQuery) (domain.PageResult[domain.Question], error)
 }
 

@@ -57,7 +57,7 @@ type LessonRepository interface {
 	Create(ctx context.Context, lesson domain.Lesson) (domain.Lesson, error)
 	Update(ctx context.Context, input domain.LessonUpdateInput) (domain.Lesson, error)
 	Delete(ctx context.Context, id uuid.UUID, actorID string) error
-	FindByID(ctx context.Context, id uuid.UUID) (domain.Lesson, error)
+	FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.Lesson, error)
 	FindAll(ctx context.Context, query domain.LessonQuery) (domain.PageResult[domain.Lesson], error)
 	ExistsBySlug(ctx context.Context, sectionID uuid.UUID, slug string, excludeID *uuid.UUID) (bool, error)
 	FindLastOrderNo(ctx context.Context) (int, error)
@@ -67,7 +67,7 @@ type UnitRepository interface {
 	Create(ctx context.Context, unit domain.Unit) (domain.Unit, error)
 	Update(ctx context.Context, input domain.UnitUpdateInput) (domain.Unit, error)
 	Delete(ctx context.Context, id uuid.UUID, actorID string) error
-	FindByID(ctx context.Context, id uuid.UUID) (domain.Unit, error)
+	FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.Unit, error)
 	FindAll(ctx context.Context, query domain.UnitQuery) (domain.PageResult[domain.Unit], error)
 	ExistsBySlug(ctx context.Context, lessonID uuid.UUID, slug string, excludeID *uuid.UUID) (bool, error)
 	FindLastOrderNo(ctx context.Context) (int, error)
@@ -77,7 +77,7 @@ type QuestionSetRepository interface {
 	Create(ctx context.Context, questionSet domain.QuestionSet) (domain.QuestionSet, error)
 	Update(ctx context.Context, input domain.QuestionSetUpdateInput) (domain.QuestionSet, error)
 	Delete(ctx context.Context, id uuid.UUID, actorID string) error
-	FindByID(ctx context.Context, id uuid.UUID) (domain.QuestionSet, error)
+	FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.QuestionSet, error)
 	FindAll(ctx context.Context, query domain.QuestionSetQuery) (domain.PageResult[domain.QuestionSet], error)
 	ExistsBySlugVersion(ctx context.Context, unitID uuid.UUID, slug string, version int, excludeID *uuid.UUID) (bool, error)
 	FindLastOrderNo(ctx context.Context) (int, error)
@@ -87,7 +87,7 @@ type QuestionRepository interface {
 	Create(ctx context.Context, question domain.Question) (domain.Question, error)
 	Update(ctx context.Context, input domain.QuestionUpdateInput) (domain.Question, error)
 	Delete(ctx context.Context, id uuid.UUID, actorID string) error
-	FindByID(ctx context.Context, id uuid.UUID) (domain.Question, error)
+	FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.Question, error)
 	FindAll(ctx context.Context, query domain.QuestionQuery) (domain.PageResult[domain.Question], error)
 	ReplaceChoices(ctx context.Context, questionID uuid.UUID, choices []domain.QuestionChoiceInput, actorID string) error
 	ReplaceTags(ctx context.Context, questionID uuid.UUID, tagIDs []uuid.UUID, actorID string) error

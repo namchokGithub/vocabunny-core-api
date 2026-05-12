@@ -88,7 +88,8 @@ func (h *LessonHandler) FindByID(c echo.Context) error {
 	if err != nil {
 		return helper.RespondError(c, helper.BadRequest("invalid_lesson_id", "lesson id must be a valid uuid", err))
 	}
-	item, err := h.service.FindByID(c.Request().Context(), id)
+	includes := domain.ParseIncludes(c.QueryParam("include"))
+	item, err := h.service.FindByID(c.Request().Context(), id, includes)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
@@ -96,7 +97,7 @@ func (h *LessonHandler) FindByID(c echo.Context) error {
 }
 
 func (h *LessonHandler) FindAll(c echo.Context) error {
-	query := domain.LessonQuery{Paging: helper.BuildPaging(c), Search: strings.TrimSpace(c.QueryParam("search"))}
+	query := domain.LessonQuery{Paging: helper.BuildPaging(c), Search: strings.TrimSpace(c.QueryParam("search")), Includes: domain.ParseIncludes(c.QueryParam("include"))}
 	query.SortBy, query.SortOrder = helper.BuildSort(c)
 	if value := strings.TrimSpace(c.QueryParam("section_id")); value != "" {
 		parsed, err := parseUUID(value, "section_id")

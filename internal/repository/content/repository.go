@@ -212,7 +212,7 @@ func (r *lessonRepository) Create(ctx context.Context, lesson domain.Lesson) (do
 	if err := r.dbWithContext(ctx).Create(&model).Error; err != nil {
 		return domain.Lesson{}, helper.Internal("create_lesson_failed", "failed to create lesson", err)
 	}
-	return r.FindByID(ctx, model.ID)
+	return r.FindByID(ctx, model.ID, nil)
 }
 
 func (r *lessonRepository) Update(ctx context.Context, input domain.LessonUpdateInput) (domain.Lesson, error) {
@@ -244,7 +244,7 @@ func (r *lessonRepository) Update(ctx context.Context, input domain.LessonUpdate
 	if err := r.dbWithContext(ctx).Save(&model).Error; err != nil {
 		return domain.Lesson{}, helper.Internal("update_lesson_failed", "failed to update lesson", err)
 	}
-	return r.FindByID(ctx, model.ID)
+	return r.FindByID(ctx, model.ID, nil)
 }
 
 func (r *lessonRepository) Delete(ctx context.Context, id uuid.UUID, actorID string) error {
@@ -257,9 +257,13 @@ func (r *lessonRepository) Delete(ctx context.Context, id uuid.UUID, actorID str
 	return nil
 }
 
-func (r *lessonRepository) FindByID(ctx context.Context, id uuid.UUID) (domain.Lesson, error) {
+func (r *lessonRepository) FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.Lesson, error) {
+	db := r.dbWithContext(ctx)
+	if includes.Has("section") {
+		db = db.Preload("Section")
+	}
 	var model LessonModel
-	if err := r.dbWithContext(ctx).First(&model, "id = ?", id).Error; err != nil {
+	if err := db.First(&model, "id = ?", id).Error; err != nil {
 		return domain.Lesson{}, mapGormNotFound(err, "lesson_not_found", "lesson not found", "find_lesson_failed", "failed to find lesson")
 	}
 	return toDomainLesson(model), nil
@@ -281,6 +285,10 @@ func (r *lessonRepository) FindAll(ctx context.Context, query domain.LessonQuery
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
 		return domain.PageResult[domain.Lesson]{}, helper.Internal("count_lessons_failed", "failed to count lessons", err)
+	}
+
+	if query.Includes.Has("section") {
+		db = db.Preload("Section")
 	}
 
 	sortBy := safeSort(query.SortBy, []string{"slug", "title", "order_no", "is_published", "created_at", "updated_at"}, "order_no")
@@ -351,7 +359,7 @@ func (r *unitRepository) Create(ctx context.Context, unit domain.Unit) (domain.U
 	if err := r.dbWithContext(ctx).Create(&model).Error; err != nil {
 		return domain.Unit{}, helper.Internal("create_unit_failed", "failed to create unit", err)
 	}
-	return r.FindByID(ctx, model.ID)
+	return r.FindByID(ctx, model.ID, nil)
 }
 
 func (r *unitRepository) Update(ctx context.Context, input domain.UnitUpdateInput) (domain.Unit, error) {
@@ -383,7 +391,7 @@ func (r *unitRepository) Update(ctx context.Context, input domain.UnitUpdateInpu
 	if err := r.dbWithContext(ctx).Save(&model).Error; err != nil {
 		return domain.Unit{}, helper.Internal("update_unit_failed", "failed to update unit", err)
 	}
-	return r.FindByID(ctx, model.ID)
+	return r.FindByID(ctx, model.ID, nil)
 }
 
 func (r *unitRepository) Delete(ctx context.Context, id uuid.UUID, actorID string) error {
@@ -396,9 +404,13 @@ func (r *unitRepository) Delete(ctx context.Context, id uuid.UUID, actorID strin
 	return nil
 }
 
-func (r *unitRepository) FindByID(ctx context.Context, id uuid.UUID) (domain.Unit, error) {
+func (r *unitRepository) FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.Unit, error) {
+	db := r.dbWithContext(ctx)
+	if includes.Has("lesson") {
+		db = db.Preload("Lesson")
+	}
 	var model UnitModel
-	if err := r.dbWithContext(ctx).First(&model, "id = ?", id).Error; err != nil {
+	if err := db.First(&model, "id = ?", id).Error; err != nil {
 		return domain.Unit{}, mapGormNotFound(err, "unit_not_found", "unit not found", "find_unit_failed", "failed to find unit")
 	}
 	return toDomainUnit(model), nil
@@ -420,6 +432,10 @@ func (r *unitRepository) FindAll(ctx context.Context, query domain.UnitQuery) (d
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
 		return domain.PageResult[domain.Unit]{}, helper.Internal("count_units_failed", "failed to count units", err)
+	}
+
+	if query.Includes.Has("lesson") {
+		db = db.Preload("Lesson")
 	}
 
 	sortBy := safeSort(query.SortBy, []string{"slug", "title", "order_no", "is_published", "created_at", "updated_at"}, "order_no")
@@ -495,7 +511,7 @@ func (r *questionSetRepository) Create(ctx context.Context, questionSet domain.Q
 	if err := r.dbWithContext(ctx).Create(&model).Error; err != nil {
 		return domain.QuestionSet{}, helper.Internal("create_question_set_failed", "failed to create question set", err)
 	}
-	return r.FindByID(ctx, model.ID)
+	return r.FindByID(ctx, model.ID, nil)
 }
 
 func (r *questionSetRepository) Update(ctx context.Context, input domain.QuestionSetUpdateInput) (domain.QuestionSet, error) {
@@ -533,7 +549,7 @@ func (r *questionSetRepository) Update(ctx context.Context, input domain.Questio
 	if err := r.dbWithContext(ctx).Save(&model).Error; err != nil {
 		return domain.QuestionSet{}, helper.Internal("update_question_set_failed", "failed to update question set", err)
 	}
-	return r.FindByID(ctx, model.ID)
+	return r.FindByID(ctx, model.ID, nil)
 }
 
 func (r *questionSetRepository) Delete(ctx context.Context, id uuid.UUID, actorID string) error {
@@ -546,9 +562,16 @@ func (r *questionSetRepository) Delete(ctx context.Context, id uuid.UUID, actorI
 	return nil
 }
 
-func (r *questionSetRepository) FindByID(ctx context.Context, id uuid.UUID) (domain.QuestionSet, error) {
+func (r *questionSetRepository) FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.QuestionSet, error) {
+	db := r.dbWithContext(ctx)
+	// include=lesson implies loading Unit first (to reach its LessonID), then the Lesson itself
+	if includes.Has("lesson") {
+		db = db.Preload("Unit.Lesson")
+	} else if includes.Has("unit") {
+		db = db.Preload("Unit")
+	}
 	var model QuestionSetModel
-	if err := r.dbWithContext(ctx).First(&model, "id = ?", id).Error; err != nil {
+	if err := db.First(&model, "id = ?", id).Error; err != nil {
 		return domain.QuestionSet{}, mapGormNotFound(err, "question_set_not_found", "question set not found", "find_question_set_failed", "failed to find question set")
 	}
 	return toDomainQuestionSet(model), nil
@@ -573,6 +596,12 @@ func (r *questionSetRepository) FindAll(ctx context.Context, query domain.Questi
 	var total int64
 	if err := db.Count(&total).Error; err != nil {
 		return domain.PageResult[domain.QuestionSet]{}, helper.Internal("count_question_sets_failed", "failed to count question sets", err)
+	}
+
+	if query.Includes.Has("lesson") {
+		db = db.Preload("Unit.Lesson")
+	} else if query.Includes.Has("unit") {
+		db = db.Preload("Unit")
 	}
 
 	sortBy := safeSort(query.SortBy, []string{"slug", "title", "order_no", "version", "is_published", "created_at", "updated_at"}, "order_no")
@@ -650,7 +679,7 @@ func (r *questionRepository) Create(ctx context.Context, question domain.Questio
 	if err := r.dbWithContext(ctx).Create(&model).Error; err != nil {
 		return domain.Question{}, helper.Internal("create_question_failed", "failed to create question", err)
 	}
-	return r.FindByID(ctx, model.ID)
+	return r.FindByID(ctx, model.ID, nil)
 }
 
 func (r *questionRepository) Update(ctx context.Context, input domain.QuestionUpdateInput) (domain.Question, error) {
@@ -691,7 +720,7 @@ func (r *questionRepository) Update(ctx context.Context, input domain.QuestionUp
 	if err := r.dbWithContext(ctx).Save(&model).Error; err != nil {
 		return domain.Question{}, helper.Internal("update_question_failed", "failed to update question", err)
 	}
-	return r.FindByID(ctx, model.ID)
+	return r.FindByID(ctx, model.ID, nil)
 }
 
 func (r *questionRepository) Delete(ctx context.Context, id uuid.UUID, actorID string) error {
@@ -705,11 +734,16 @@ func (r *questionRepository) Delete(ctx context.Context, id uuid.UUID, actorID s
 	return nil
 }
 
-func (r *questionRepository) FindByID(ctx context.Context, id uuid.UUID) (domain.Question, error) {
+func (r *questionRepository) FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.Question, error) {
+	db := r.dbWithContext(ctx)
+	if includes.Has("question_set") {
+		db = db.Preload("QuestionSet")
+	}
 	var model QuestionModel
-	if err := r.dbWithContext(ctx).First(&model, "id = ?", id).Error; err != nil {
+	if err := db.First(&model, "id = ?", id).Error; err != nil {
 		return domain.Question{}, mapGormNotFound(err, "question_not_found", "question not found", "find_question_failed", "failed to find question")
 	}
+	// FindByID always loads choices and tags for a complete single-item response.
 	return r.loadQuestionRelations(ctx, model, true, true)
 }
 
@@ -734,6 +768,10 @@ func (r *questionRepository) FindAll(ctx context.Context, query domain.QuestionQ
 		return domain.PageResult[domain.Question]{}, helper.Internal("count_questions_failed", "failed to count questions", err)
 	}
 
+	if query.Includes.Has("question_set") {
+		db = db.Preload("QuestionSet")
+	}
+
 	sortBy := safeSort(query.SortBy, []string{"type", "difficulty", "order_no", "is_active", "created_at", "updated_at"}, "order_no")
 	sortOrder := safeSortOrder(query.SortOrder)
 
@@ -746,9 +784,12 @@ func (r *questionRepository) FindAll(ctx context.Context, query domain.QuestionQ
 		return domain.PageResult[domain.Question]{}, helper.Internal("list_questions_failed", "failed to list questions", err)
 	}
 
+	includeChoices := query.Includes.Has("choices")
+	includeTags := query.Includes.Has("tags")
+
 	items := make([]domain.Question, 0, len(models))
 	for _, model := range models {
-		question, err := r.loadQuestionRelations(ctx, model, query.IncludeChoices, query.IncludeTags)
+		question, err := r.loadQuestionRelations(ctx, model, includeChoices, includeTags)
 		if err != nil {
 			return domain.PageResult[domain.Question]{}, err
 		}
@@ -1196,6 +1237,10 @@ func toDomainLesson(model LessonModel) domain.Lesson {
 		IsPublished: model.IsPublished,
 		AuditFields: toAuditFields(model.CreatedAt, model.UpdatedAt, model.DeletedAt, model.CreatedBy, model.UpdatedBy),
 	}
+	if model.Section.ID != uuid.Nil {
+		s := toDomainSection(model.Section)
+		item.Section = &s
+	}
 	return item
 }
 
@@ -1209,6 +1254,10 @@ func toDomainUnit(model UnitModel) domain.Unit {
 		OrderNo:     model.OrderNo,
 		IsPublished: model.IsPublished,
 		AuditFields: toAuditFields(model.CreatedAt, model.UpdatedAt, model.DeletedAt, model.CreatedBy, model.UpdatedBy),
+	}
+	if model.Lesson.ID != uuid.Nil {
+		l := toDomainLesson(model.Lesson)
+		item.Lesson = &l
 	}
 	return item
 }
@@ -1226,6 +1275,32 @@ func toDomainQuestionSet(model QuestionSetModel) domain.QuestionSet {
 		Version:          model.Version,
 		AuditFields:      toAuditFields(model.CreatedAt, model.UpdatedAt, model.DeletedAt, model.CreatedBy, model.UpdatedBy),
 	}
+	if model.Unit.ID != uuid.Nil {
+		u := domain.Unit{
+			ID:          model.Unit.ID,
+			LessonID:    model.Unit.LessonID,
+			Slug:        model.Unit.Slug,
+			Title:       model.Unit.Title,
+			Description: model.Unit.Description,
+			OrderNo:     model.Unit.OrderNo,
+			IsPublished: model.Unit.IsPublished,
+			AuditFields: toAuditFields(model.Unit.CreatedAt, model.Unit.UpdatedAt, model.Unit.DeletedAt, model.Unit.CreatedBy, model.Unit.UpdatedBy),
+		}
+		item.Unit = &u
+	}
+	if model.Unit.Lesson.ID != uuid.Nil {
+		l := domain.Lesson{
+			ID:          model.Unit.Lesson.ID,
+			SectionID:   model.Unit.Lesson.SectionID,
+			Slug:        model.Unit.Lesson.Slug,
+			Title:       model.Unit.Lesson.Title,
+			Description: model.Unit.Lesson.Description,
+			OrderNo:     model.Unit.Lesson.OrderNo,
+			IsPublished: model.Unit.Lesson.IsPublished,
+			AuditFields: toAuditFields(model.Unit.Lesson.CreatedAt, model.Unit.Lesson.UpdatedAt, model.Unit.Lesson.DeletedAt, model.Unit.Lesson.CreatedBy, model.Unit.Lesson.UpdatedBy),
+		}
+		item.Lesson = &l
+	}
 	return item
 }
 
@@ -1242,6 +1317,10 @@ func toDomainQuestion(model QuestionModel) domain.Question {
 		OrderNo:       model.OrderNo,
 		IsActive:      model.IsActive,
 		AuditFields:   toAuditFields(model.CreatedAt, model.UpdatedAt, model.DeletedAt, model.CreatedBy, model.UpdatedBy),
+	}
+	if model.QuestionSet.ID != uuid.Nil {
+		qs := toDomainQuestionSet(model.QuestionSet)
+		item.QuestionSet = &qs
 	}
 	return item
 }

@@ -43,7 +43,7 @@ func (s *questionSetService) Create(ctx context.Context, input domain.QuestionSe
 
 	var created domain.QuestionSet
 	err := s.txManager.RunInTx(ctx, func(txCtx context.Context) error {
-		if _, err := s.unitRepository.FindByID(txCtx, input.UnitID); err != nil {
+		if _, err := s.unitRepository.FindByID(txCtx, input.UnitID, nil); err != nil {
 			return helper.BadRequest("invalid_unit_id", "unit does not exist", err)
 		}
 		exists, err := s.questionSetRepository.ExistsBySlugVersion(txCtx, input.UnitID, input.Slug, input.Version, nil)
@@ -72,7 +72,7 @@ func (s *questionSetService) Create(ctx context.Context, input domain.QuestionSe
 func (s *questionSetService) Update(ctx context.Context, input domain.QuestionSetUpdateInput) (domain.QuestionSet, error) {
 	var updated domain.QuestionSet
 	err := s.txManager.RunInTx(ctx, func(txCtx context.Context) error {
-		current, err := s.questionSetRepository.FindByID(txCtx, input.ID)
+		current, err := s.questionSetRepository.FindByID(txCtx, input.ID, nil)
 		if err != nil {
 			return err
 		}
@@ -83,7 +83,7 @@ func (s *questionSetService) Update(ctx context.Context, input domain.QuestionSe
 			if input.UnitID.Value == uuid.Nil {
 				return helper.BadRequest("invalid_unit_id", "unit_id cannot be empty", nil)
 			}
-			if _, err := s.unitRepository.FindByID(txCtx, input.UnitID.Value); err != nil {
+			if _, err := s.unitRepository.FindByID(txCtx, input.UnitID.Value, nil); err != nil {
 				return helper.BadRequest("invalid_unit_id", "unit does not exist", err)
 			}
 			targetUnitID = input.UnitID.Value
@@ -124,15 +124,15 @@ func (s *questionSetService) Update(ctx context.Context, input domain.QuestionSe
 
 func (s *questionSetService) Delete(ctx context.Context, id uuid.UUID, actorID string) error {
 	return s.txManager.RunInTx(ctx, func(txCtx context.Context) error {
-		if _, err := s.questionSetRepository.FindByID(txCtx, id); err != nil {
+		if _, err := s.questionSetRepository.FindByID(txCtx, id, nil); err != nil {
 			return err
 		}
 		return s.questionSetRepository.Delete(txCtx, id, actorID)
 	})
 }
 
-func (s *questionSetService) FindByID(ctx context.Context, id uuid.UUID) (domain.QuestionSet, error) {
-	return s.questionSetRepository.FindByID(ctx, id)
+func (s *questionSetService) FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.QuestionSet, error) {
+	return s.questionSetRepository.FindByID(ctx, id, includes)
 }
 
 func (s *questionSetService) FindAll(ctx context.Context, query domain.QuestionSetQuery) (domain.PageResult[domain.QuestionSet], error) {

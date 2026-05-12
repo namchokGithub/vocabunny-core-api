@@ -39,6 +39,7 @@ type QuestionResponse struct {
 	Difficulty    int                      `json:"difficulty"`
 	OrderNo       int                      `json:"order_no"`
 	IsActive      bool                     `json:"is_active"`
+	QuestionSet   *QuestionSetSummaryDTO   `json:"question_set,omitempty"`
 	Choices       []QuestionChoiceResponse `json:"choices,omitempty"`
 	Tags          []TagResponse            `json:"tags,omitempty"`
 	CreatedAt     string                   `json:"created_at"`

@@ -1,6 +1,30 @@
 package domain
 
-import "time"
+import (
+	"strings"
+	"time"
+)
+
+// Includes is a set of relation names requested by the caller via the ?include= query param.
+type Includes map[string]struct{}
+
+func ParseIncludes(raw string) Includes {
+	inc := make(Includes)
+	for _, part := range strings.Split(raw, ",") {
+		if s := strings.TrimSpace(strings.ToLower(part)); s != "" {
+			inc[s] = struct{}{}
+		}
+	}
+	return inc
+}
+
+func (i Includes) Has(key string) bool {
+	if i == nil {
+		return false
+	}
+	_, ok := i[key]
+	return ok
+}
 
 type AuditFields struct {
 	CreatedAt time.Time

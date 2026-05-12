@@ -67,7 +67,7 @@ func (s *lessonService) Create(ctx context.Context, input domain.LessonCreateInp
 func (s *lessonService) Update(ctx context.Context, input domain.LessonUpdateInput) (domain.Lesson, error) {
 	var updated domain.Lesson
 	err := s.txManager.RunInTx(ctx, func(txCtx context.Context) error {
-		current, err := s.lessonRepository.FindByID(txCtx, input.ID)
+		current, err := s.lessonRepository.FindByID(txCtx, input.ID, nil)
 		if err != nil {
 			return err
 		}
@@ -112,15 +112,15 @@ func (s *lessonService) Update(ctx context.Context, input domain.LessonUpdateInp
 
 func (s *lessonService) Delete(ctx context.Context, id uuid.UUID, actorID string) error {
 	return s.txManager.RunInTx(ctx, func(txCtx context.Context) error {
-		if _, err := s.lessonRepository.FindByID(txCtx, id); err != nil {
+		if _, err := s.lessonRepository.FindByID(txCtx, id, nil); err != nil {
 			return err
 		}
 		return s.lessonRepository.Delete(txCtx, id, actorID)
 	})
 }
 
-func (s *lessonService) FindByID(ctx context.Context, id uuid.UUID) (domain.Lesson, error) {
-	return s.lessonRepository.FindByID(ctx, id)
+func (s *lessonService) FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.Lesson, error) {
+	return s.lessonRepository.FindByID(ctx, id, includes)
 }
 
 func (s *lessonService) FindAll(ctx context.Context, query domain.LessonQuery) (domain.PageResult[domain.Lesson], error) {

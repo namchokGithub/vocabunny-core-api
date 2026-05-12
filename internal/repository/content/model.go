@@ -38,6 +38,8 @@ type LessonModel struct {
 	CreatedAt   time.Time      `gorm:"column:created_at;not null"`
 	UpdatedAt   time.Time      `gorm:"column:updated_at;not null"`
 	DeletedAt   gorm.DeletedAt `gorm:"column:deleted_at;index"`
+
+	Section SectionModel `gorm:"foreignKey:SectionID"`
 }
 
 func (LessonModel) TableName() string {
@@ -57,6 +59,8 @@ type UnitModel struct {
 	CreatedAt   time.Time      `gorm:"column:created_at;not null"`
 	UpdatedAt   time.Time      `gorm:"column:updated_at;not null"`
 	DeletedAt   gorm.DeletedAt `gorm:"column:deleted_at;index"`
+
+	Lesson LessonModel `gorm:"foreignKey:LessonID"`
 }
 
 func (UnitModel) TableName() string {
@@ -78,6 +82,8 @@ type QuestionSetModel struct {
 	CreatedAt        time.Time      `gorm:"column:created_at;not null"`
 	UpdatedAt        time.Time      `gorm:"column:updated_at;not null"`
 	DeletedAt        gorm.DeletedAt `gorm:"column:deleted_at;index"`
+
+	Unit UnitModel `gorm:"foreignKey:UnitID"`
 }
 
 func (QuestionSetModel) TableName() string {
@@ -100,6 +106,8 @@ type QuestionModel struct {
 	CreatedAt     time.Time      `gorm:"column:created_at;not null"`
 	UpdatedAt     time.Time      `gorm:"column:updated_at;not null"`
 	DeletedAt     gorm.DeletedAt `gorm:"column:deleted_at;index"`
+
+	QuestionSet QuestionSetModel `gorm:"foreignKey:QuestionSetID"`
 }
 
 func (QuestionModel) TableName() string {

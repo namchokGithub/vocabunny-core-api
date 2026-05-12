@@ -7,7 +7,7 @@ import (
 )
 
 func toQuestionResponse(item domain.Question) QuestionResponse {
-	response := QuestionResponse{
+	resp := QuestionResponse{
 		ID:            item.ID.String(),
 		QuestionSetID: item.QuestionSetID.String(),
 		Type:          item.Type,
@@ -23,14 +23,20 @@ func toQuestionResponse(item domain.Question) QuestionResponse {
 		CreatedBy:     item.CreatedBy,
 		UpdatedBy:     item.UpdatedBy,
 	}
-
+	if item.QuestionSet != nil {
+		resp.QuestionSet = &QuestionSetSummaryDTO{
+			ID:      item.QuestionSet.ID.String(),
+			UnitID:  item.QuestionSet.UnitID.String(),
+			Slug:    item.QuestionSet.Slug,
+			Title:   item.QuestionSet.Title,
+			Version: item.QuestionSet.Version,
+		}
+	}
 	for _, choice := range item.Choices {
-		response.Choices = append(response.Choices, toQuestionChoiceResponse(choice))
+		resp.Choices = append(resp.Choices, toQuestionChoiceResponse(choice))
 	}
-
 	for _, tag := range item.Tags {
-		response.Tags = append(response.Tags, toTagResponse(tag))
+		resp.Tags = append(resp.Tags, toTagResponse(tag))
 	}
-
-	return response
+	return resp
 }
