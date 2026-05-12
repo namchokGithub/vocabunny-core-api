@@ -1142,19 +1142,22 @@ func (r *tagRepository) Update(ctx context.Context, input domain.TagUpdateInput)
 	if err := r.dbWithContext(ctx).First(&model, "id = ?", input.ID).Error; err != nil {
 		return domain.Tag{}, mapGormNotFound(err, "tag_not_found", "tag not found", "find_tag_failed", "failed to load tag")
 	}
+
+	updates := map[string]any{
+		"updated_by": input.ActorID,
+		"updated_at": time.Now(),
+	}
 	if input.Name.Set {
-		model.Name = input.Name.Value
+		updates["name"] = input.Name.Value
 	}
 	if input.Color.Set {
-		model.Color = input.Color.Value
+		updates["color"] = input.Color.Value
 	}
-	model.UpdatedBy = input.ActorID
-	model.UpdatedAt = time.Now()
 
-	if err := r.dbWithContext(ctx).Save(&model).Error; err != nil {
+	if err := r.dbWithContext(ctx).Model(&TagModel{}).Where("id = ?", input.ID).Updates(updates).Error; err != nil {
 		return domain.Tag{}, helper.Internal("update_tag_failed", "failed to update tag", err)
 	}
-	return r.FindByID(ctx, model.ID)
+	return r.FindByID(ctx, input.ID)
 }
 
 func (r *tagRepository) Delete(ctx context.Context, id uuid.UUID, actorID string) error {
