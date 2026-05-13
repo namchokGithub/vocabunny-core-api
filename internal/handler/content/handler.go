@@ -11,6 +11,7 @@ type Dependencies struct {
 }
 
 type Handler struct {
+	ContentOrder   *ContentOrderHandler
 	Section        *SectionHandler
 	Lesson         *LessonHandler
 	Unit           *UnitHandler
@@ -18,10 +19,12 @@ type Handler struct {
 	Question       *QuestionHandler
 	QuestionChoice *QuestionChoiceHandler
 	Tag            *TagHandler
+	MediaAsset     *MediaAssetHandler
 }
 
 func NewHandler(deps Dependencies) *Handler {
 	return &Handler{
+		ContentOrder:   NewContentOrderHandler(deps.Services.ContentOrder),
 		Section:        NewSectionHandler(deps.Services.Section),
 		Lesson:         NewLessonHandler(deps.Services.Lesson),
 		Unit:           NewUnitHandler(deps.Services.Unit),
@@ -29,5 +32,6 @@ func NewHandler(deps Dependencies) *Handler {
 		Question:       NewQuestionHandler(deps.Services.Question),
 		QuestionChoice: NewQuestionChoiceHandler(deps.Services.QuestionChoice),
 		Tag:            NewTagHandler(deps.Services.Tag),
+		MediaAsset:     NewMediaAssetHandler(deps.Services.MediaAsset),
 	}
 }

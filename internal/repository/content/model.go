@@ -38,6 +38,8 @@ type LessonModel struct {
 	CreatedAt   time.Time      `gorm:"column:created_at;not null"`
 	UpdatedAt   time.Time      `gorm:"column:updated_at;not null"`
 	DeletedAt   gorm.DeletedAt `gorm:"column:deleted_at;index"`
+
+	Section SectionModel `gorm:"foreignKey:SectionID"`
 }
 
 func (LessonModel) TableName() string {
@@ -57,6 +59,8 @@ type UnitModel struct {
 	CreatedAt   time.Time      `gorm:"column:created_at;not null"`
 	UpdatedAt   time.Time      `gorm:"column:updated_at;not null"`
 	DeletedAt   gorm.DeletedAt `gorm:"column:deleted_at;index"`
+
+	Lesson LessonModel `gorm:"foreignKey:LessonID"`
 }
 
 func (UnitModel) TableName() string {
@@ -78,6 +82,8 @@ type QuestionSetModel struct {
 	CreatedAt        time.Time      `gorm:"column:created_at;not null"`
 	UpdatedAt        time.Time      `gorm:"column:updated_at;not null"`
 	DeletedAt        gorm.DeletedAt `gorm:"column:deleted_at;index"`
+
+	Unit UnitModel `gorm:"foreignKey:UnitID"`
 }
 
 func (QuestionSetModel) TableName() string {
@@ -100,6 +106,8 @@ type QuestionModel struct {
 	CreatedAt     time.Time      `gorm:"column:created_at;not null"`
 	UpdatedAt     time.Time      `gorm:"column:updated_at;not null"`
 	DeletedAt     gorm.DeletedAt `gorm:"column:deleted_at;index"`
+
+	QuestionSet QuestionSetModel `gorm:"foreignKey:QuestionSetID"`
 }
 
 func (QuestionModel) TableName() string {
@@ -126,6 +134,7 @@ func (QuestionChoiceModel) TableName() string {
 type TagModel struct {
 	ID        uuid.UUID      `gorm:"column:id;type:uuid;default:gen_random_uuid();primaryKey"`
 	Name      string         `gorm:"column:name;size:255;uniqueIndex;not null"`
+	Color     string         `gorm:"column:color;size:7"`
 	CreatedBy string         `gorm:"column:created_by;size:255"`
 	UpdatedBy string         `gorm:"column:updated_by;size:255"`
 	CreatedAt time.Time      `gorm:"column:created_at;not null"`

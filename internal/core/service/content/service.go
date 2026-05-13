@@ -10,10 +10,12 @@ type Dependencies struct {
 	QuestionRepository       port.QuestionRepository
 	QuestionChoiceRepository port.QuestionChoiceRepository
 	TagRepository            port.TagRepository
+	MediaAssetRepository     port.MediaAssetRepository
 	TxManager                port.TransactionManager
 }
 
 type Service struct {
+	ContentOrder   port.ContentOrderService
 	Section        port.SectionService
 	Lesson         port.LessonService
 	Unit           port.UnitService
@@ -21,10 +23,18 @@ type Service struct {
 	Question       port.QuestionService
 	QuestionChoice port.QuestionChoiceService
 	Tag            port.TagService
+	MediaAsset     port.MediaAssetService
 }
 
 func NewService(deps Dependencies) *Service {
 	return &Service{
+		ContentOrder: NewContentOrderService(ContentOrderServiceDependencies{
+			SectionRepository:     deps.SectionRepository,
+			LessonRepository:      deps.LessonRepository,
+			UnitRepository:        deps.UnitRepository,
+			QuestionSetRepository: deps.QuestionSetRepository,
+			QuestionRepository:    deps.QuestionRepository,
+		}),
 		Section: NewSectionService(SectionServiceDependencies{
 			SectionRepository: deps.SectionRepository,
 			TxManager:         deps.TxManager,
@@ -58,6 +68,10 @@ func NewService(deps Dependencies) *Service {
 		Tag: NewTagService(TagServiceDependencies{
 			TagRepository: deps.TagRepository,
 			TxManager:     deps.TxManager,
+		}),
+		MediaAsset: NewMediaAssetService(MediaAssetServiceDependencies{
+			MediaAssetRepository: deps.MediaAssetRepository,
+			TxManager:            deps.TxManager,
 		}),
 	}
 }

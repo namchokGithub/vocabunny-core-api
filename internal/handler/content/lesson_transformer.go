@@ -7,7 +7,7 @@ import (
 )
 
 func toLessonResponse(item domain.Lesson) LessonResponse {
-	return LessonResponse{
+	resp := LessonResponse{
 		ID:          item.ID.String(),
 		SectionID:   item.SectionID.String(),
 		Slug:        item.Slug,
@@ -20,4 +20,12 @@ func toLessonResponse(item domain.Lesson) LessonResponse {
 		CreatedBy:   item.CreatedBy,
 		UpdatedBy:   item.UpdatedBy,
 	}
+	if item.Section != nil {
+		resp.Section = &SectionSummaryDTO{
+			ID:    item.Section.ID.String(),
+			Slug:  item.Section.Slug,
+			Title: item.Section.Title,
+		}
+	}
+	return resp
 }

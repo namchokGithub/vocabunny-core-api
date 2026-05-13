@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/namchokGithub/vocabunny-core-api/internal/constants"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/domain"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/port"
@@ -26,13 +27,13 @@ func (h *SectionHandler) Create(c echo.Context) error {
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusCreated, toSectionResponse(item))
+	return helper.RespondSuccess(c, http.StatusCreated, toSectionResponse(item), constants.CodeCreated)
 }
 
 func (h *SectionHandler) Update(c echo.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return helper.RespondError(c, helper.BadRequest("invalid_section_id", "section id must be a valid uuid", err))
+		return helper.RespondError(c, helper.BadRequest(constants.CodeInvalidQueryParam, "section id must be a valid uuid", err))
 	}
 	var req UpdateSectionRequest
 	if err := helper.BindAndValidate(c, &req); err != nil {
@@ -58,30 +59,30 @@ func (h *SectionHandler) Update(c echo.Context) error {
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusOK, toSectionResponse(item))
+	return helper.RespondSuccess(c, http.StatusOK, toSectionResponse(item), constants.CodeUpdated)
 }
 
 func (h *SectionHandler) Delete(c echo.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return helper.RespondError(c, helper.BadRequest("invalid_section_id", "section id must be a valid uuid", err))
+		return helper.RespondError(c, helper.BadRequest(constants.CodeInvalidQueryParam, "section id must be a valid uuid", err))
 	}
 	if err := h.service.Delete(c.Request().Context(), id, helper.ActorIDFromContext(c)); err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusOK, map[string]string{"id": id.String(), "status": "deleted"})
+	return helper.RespondSuccess(c, http.StatusOK, map[string]string{"id": id.String(), "status": "deleted"}, constants.CodeDeleted)
 }
 
 func (h *SectionHandler) FindByID(c echo.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return helper.RespondError(c, helper.BadRequest("invalid_section_id", "section id must be a valid uuid", err))
+		return helper.RespondError(c, helper.BadRequest(constants.CodeInvalidQueryParam, "section id must be a valid uuid", err))
 	}
 	item, err := h.service.FindByID(c.Request().Context(), id)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusOK, toSectionResponse(item))
+	return helper.RespondSuccess(c, http.StatusOK, toSectionResponse(item), constants.CodeSuccess)
 }
 
 func (h *SectionHandler) FindAll(c echo.Context) error {
@@ -99,5 +100,5 @@ func (h *SectionHandler) FindAll(c echo.Context) error {
 	for _, item := range result.Items {
 		items = append(items, toSectionResponse(item))
 	}
-	return helper.RespondSuccess(c, http.StatusOK, ListResponse[SectionResponse, domain.SectionQuery]{Items: items, Paging: PagingResponse{Page: result.Paging.Page, Limit: result.Paging.Limit, Total: result.Paging.Total}, Query: query})
+	return helper.RespondSuccess(c, http.StatusOK, ListResponse[SectionResponse, domain.SectionQuery]{Items: items, Paging: helper.NewPagingResponse(result.Paging), Query: query}, constants.CodeSuccess)
 }

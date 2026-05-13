@@ -7,7 +7,7 @@ import (
 )
 
 func toQuestionSetResponse(item domain.QuestionSet) QuestionSetResponse {
-	return QuestionSetResponse{
+	resp := QuestionSetResponse{
 		ID:               item.ID.String(),
 		UnitID:           item.UnitID.String(),
 		Slug:             item.Slug,
@@ -22,4 +22,21 @@ func toQuestionSetResponse(item domain.QuestionSet) QuestionSetResponse {
 		CreatedBy:        item.CreatedBy,
 		UpdatedBy:        item.UpdatedBy,
 	}
+	if item.Unit != nil {
+		resp.Unit = &UnitSummaryDTO{
+			ID:       item.Unit.ID.String(),
+			LessonID: item.Unit.LessonID.String(),
+			Slug:     item.Unit.Slug,
+			Title:    item.Unit.Title,
+		}
+	}
+	if item.Lesson != nil {
+		resp.Lesson = &LessonSummaryDTO{
+			ID:        item.Lesson.ID.String(),
+			SectionID: item.Lesson.SectionID.String(),
+			Slug:      item.Lesson.Slug,
+			Title:     item.Lesson.Title,
+		}
+	}
+	return resp
 }

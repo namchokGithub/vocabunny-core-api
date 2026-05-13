@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/namchokGithub/vocabunny-core-api/internal/constants"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/domain"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/port"
@@ -30,13 +31,13 @@ func (h *LessonHandler) Create(c echo.Context) error {
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusCreated, toLessonResponse(item))
+	return helper.RespondSuccess(c, http.StatusCreated, toLessonResponse(item), constants.CodeCreated)
 }
 
 func (h *LessonHandler) Update(c echo.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return helper.RespondError(c, helper.BadRequest("invalid_lesson_id", "lesson id must be a valid uuid", err))
+		return helper.RespondError(c, helper.BadRequest(constants.CodeInvalidQueryParam, "lesson id must be a valid uuid", err))
 	}
 	var req UpdateLessonRequest
 	if err := helper.BindAndValidate(c, &req); err != nil {
@@ -69,34 +70,35 @@ func (h *LessonHandler) Update(c echo.Context) error {
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusOK, toLessonResponse(item))
+	return helper.RespondSuccess(c, http.StatusOK, toLessonResponse(item), constants.CodeUpdated)
 }
 
 func (h *LessonHandler) Delete(c echo.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return helper.RespondError(c, helper.BadRequest("invalid_lesson_id", "lesson id must be a valid uuid", err))
+		return helper.RespondError(c, helper.BadRequest(constants.CodeInvalidQueryParam, "lesson id must be a valid uuid", err))
 	}
 	if err := h.service.Delete(c.Request().Context(), id, helper.ActorIDFromContext(c)); err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusOK, map[string]string{"id": id.String(), "status": "deleted"})
+	return helper.RespondSuccess(c, http.StatusOK, map[string]string{"id": id.String(), "status": "deleted"}, constants.CodeDeleted)
 }
 
 func (h *LessonHandler) FindByID(c echo.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return helper.RespondError(c, helper.BadRequest("invalid_lesson_id", "lesson id must be a valid uuid", err))
+		return helper.RespondError(c, helper.BadRequest(constants.CodeInvalidQueryParam, "lesson id must be a valid uuid", err))
 	}
-	item, err := h.service.FindByID(c.Request().Context(), id)
+	includes := domain.ParseIncludes(c.QueryParam("include"))
+	item, err := h.service.FindByID(c.Request().Context(), id, includes)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusOK, toLessonResponse(item))
+	return helper.RespondSuccess(c, http.StatusOK, toLessonResponse(item), constants.CodeSuccess)
 }
 
 func (h *LessonHandler) FindAll(c echo.Context) error {
-	query := domain.LessonQuery{Paging: helper.BuildPaging(c), Search: strings.TrimSpace(c.QueryParam("search"))}
+	query := domain.LessonQuery{Paging: helper.BuildPaging(c), Search: strings.TrimSpace(c.QueryParam("search")), Includes: domain.ParseIncludes(c.QueryParam("include"))}
 	query.SortBy, query.SortOrder = helper.BuildSort(c)
 	if value := strings.TrimSpace(c.QueryParam("section_id")); value != "" {
 		parsed, err := parseUUID(value, "section_id")
@@ -117,5 +119,5 @@ func (h *LessonHandler) FindAll(c echo.Context) error {
 	for _, item := range result.Items {
 		items = append(items, toLessonResponse(item))
 	}
-	return helper.RespondSuccess(c, http.StatusOK, ListResponse[LessonResponse, domain.LessonQuery]{Items: items, Paging: PagingResponse{Page: result.Paging.Page, Limit: result.Paging.Limit, Total: result.Paging.Total}, Query: query})
+	return helper.RespondSuccess(c, http.StatusOK, ListResponse[LessonResponse, domain.LessonQuery]{Items: items, Paging: helper.NewPagingResponse(result.Paging), Query: query}, constants.CodeSuccess)
 }

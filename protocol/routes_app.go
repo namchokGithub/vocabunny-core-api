@@ -10,6 +10,7 @@ func registerAppRoutes(group *echo.Group, app *App) {
 
 	auth := appGroup.Group("/auth")
 	auth.POST("/login/password", app.Handlers.AuthIdentity.LoginAppWithPassword)
+	auth.POST("/refresh", app.Handlers.AuthIdentity.RefreshAppToken)
 
 	appProtected := appGroup.Group("")
 	appProtected.Use(app.Middleware.Authenticate(), app.Middleware.RequireTokenScope(domain.TokenScopeApp))

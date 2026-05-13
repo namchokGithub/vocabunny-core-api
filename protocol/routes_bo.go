@@ -10,6 +10,7 @@ func registerBORoutes(group *echo.Group, app *App) {
 
 	auth := boGroup.Group("/auth")
 	auth.POST("/login/password", app.Handlers.AuthIdentity.LoginBOWithPassword)
+	auth.POST("/refresh", app.Handlers.AuthIdentity.RefreshBOToken)
 
 	authenticated := boGroup.Group("")
 	authenticated.Use(app.Middleware.Authenticate(), app.Middleware.RequireTokenScope(domain.TokenScopeBO))
@@ -38,6 +39,9 @@ func registerBORoutes(group *echo.Group, app *App) {
 	authIdentities.DELETE("/:id", app.Handlers.AuthIdentity.Delete)
 
 	content := authenticated.Group("/content")
+
+	orderNos := content.Group("/order-nos")
+	orderNos.GET("/last", app.Handlers.ContentOrder.GetLastOrderNos, app.Middleware.RequirePermissions(domain.PermissionContentRead))
 
 	sections := content.Group("/sections")
 	sections.POST("", app.Handlers.Section.Create, app.Middleware.RequirePermissions(domain.PermissionContentWrite))
@@ -87,4 +91,11 @@ func registerBORoutes(group *echo.Group, app *App) {
 	tags.GET("/:id", app.Handlers.Tag.FindByID, app.Middleware.RequirePermissions(domain.PermissionContentRead))
 	tags.PUT("/:id", app.Handlers.Tag.Update, app.Middleware.RequirePermissions(domain.PermissionContentWrite))
 	tags.DELETE("/:id", app.Handlers.Tag.Delete, app.Middleware.RequirePermissions(domain.PermissionContentWrite))
+
+	mediaAssets := content.Group("/media-assets")
+	mediaAssets.POST("", app.Handlers.MediaAsset.Create, app.Middleware.RequirePermissions(domain.PermissionContentWrite))
+	mediaAssets.GET("", app.Handlers.MediaAsset.FindAll, app.Middleware.RequirePermissions(domain.PermissionContentRead))
+	mediaAssets.GET("/:id", app.Handlers.MediaAsset.FindByID, app.Middleware.RequirePermissions(domain.PermissionContentRead))
+	mediaAssets.PUT("/:id", app.Handlers.MediaAsset.Update, app.Middleware.RequirePermissions(domain.PermissionContentWrite))
+	mediaAssets.DELETE("/:id", app.Handlers.MediaAsset.Delete, app.Middleware.RequirePermissions(domain.PermissionContentWrite))
 }

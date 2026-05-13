@@ -1,5 +1,7 @@
 package identity
 
+import "github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
+
 type CreateUserRequest struct {
 	Email       string   `json:"email" validate:"required,email,max=255"`
 	Username    string   `json:"username" validate:"required,max=255"`
@@ -111,6 +113,10 @@ type PasswordLoginRequest struct {
 	Password        string `json:"password" validate:"required"`
 }
 
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token" validate:"required"`
+}
+
 type AuthIdentityResponse struct {
 	ID             string `json:"id"`
 	UserID         string `json:"user_id"`
@@ -145,8 +151,4 @@ type LoginResponse struct {
 	User             UserResponse `json:"user"`
 }
 
-type PagingResponse struct {
-	Page  int   `json:"page"`
-	Limit int   `json:"limit"`
-	Total int64 `json:"total"`
-}
+type PagingResponse = helper.PagingResponse

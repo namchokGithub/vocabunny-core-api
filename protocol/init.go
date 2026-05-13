@@ -73,6 +73,7 @@ func Initialize(ctx context.Context, cfg configs.Config) (*App, error) {
 			Question:       repositories.Question,
 			QuestionChoice: repositories.QuestionChoice,
 			Tag:            repositories.Tag,
+			MediaAsset:     repositories.MediaAsset,
 		},
 		TxManager:    infrastructure.NewTransactionManager(db.Gorm),
 		Storage:      storage,

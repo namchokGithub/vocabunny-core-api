@@ -16,6 +16,7 @@ type Handler struct {
 	User           *identityhandler.UserHandler
 	Role           *identityhandler.RoleHandler
 	AuthIdentity   *identityhandler.AuthIdentityHandler
+	ContentOrder   *contenthandler.ContentOrderHandler
 	Section        *contenthandler.SectionHandler
 	Lesson         *contenthandler.LessonHandler
 	Unit           *contenthandler.UnitHandler
@@ -23,6 +24,7 @@ type Handler struct {
 	Question       *contenthandler.QuestionHandler
 	QuestionChoice *contenthandler.QuestionChoiceHandler
 	Tag            *contenthandler.TagHandler
+	MediaAsset     *contenthandler.MediaAssetHandler
 }
 
 func NewHandler(deps Dependencies) *Handler {
@@ -39,6 +41,7 @@ func NewHandler(deps Dependencies) *Handler {
 		User:           identityHandlers.User,
 		Role:           identityHandlers.Role,
 		AuthIdentity:   identityHandlers.AuthIdentity,
+		ContentOrder:   contentHandlers.ContentOrder,
 		Section:        contentHandlers.Section,
 		Lesson:         contentHandlers.Lesson,
 		Unit:           contentHandlers.Unit,
@@ -46,5 +49,6 @@ func NewHandler(deps Dependencies) *Handler {
 		Question:       contentHandlers.Question,
 		QuestionChoice: contentHandlers.QuestionChoice,
 		Tag:            contentHandlers.Tag,
+		MediaAsset:     contentHandlers.MediaAsset,
 	}
 }

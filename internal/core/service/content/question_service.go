@@ -50,7 +50,7 @@ func (s *questionService) Create(ctx context.Context, input domain.QuestionCreat
 
 	var created domain.Question
 	err := s.txManager.RunInTx(ctx, func(txCtx context.Context) error {
-		if _, err := s.questionSetRepository.FindByID(txCtx, input.QuestionSetID); err != nil {
+		if _, err := s.questionSetRepository.FindByID(txCtx, input.QuestionSetID, nil); err != nil {
 			return helper.BadRequest("invalid_question_set_id", "question set does not exist", err)
 		}
 		for _, choice := range input.Choices {
@@ -82,7 +82,7 @@ func (s *questionService) Create(ctx context.Context, input domain.QuestionCreat
 		if err := s.questionRepository.ReplaceTags(txCtx, question.ID, input.TagIDs, input.ActorID); err != nil {
 			return err
 		}
-		created, err = s.questionRepository.FindByID(txCtx, question.ID)
+		created, err = s.questionRepository.FindByID(txCtx, question.ID, nil)
 		return err
 	})
 	return created, err
@@ -91,7 +91,7 @@ func (s *questionService) Create(ctx context.Context, input domain.QuestionCreat
 func (s *questionService) Update(ctx context.Context, input domain.QuestionUpdateInput) (domain.Question, error) {
 	var updated domain.Question
 	err := s.txManager.RunInTx(ctx, func(txCtx context.Context) error {
-		current, err := s.questionRepository.FindByID(txCtx, input.ID)
+		current, err := s.questionRepository.FindByID(txCtx, input.ID, nil)
 		if err != nil {
 			return err
 		}
@@ -99,7 +99,7 @@ func (s *questionService) Update(ctx context.Context, input domain.QuestionUpdat
 			if input.QuestionSetID.Value == uuid.Nil {
 				return helper.BadRequest("invalid_question_set_id", "question_set_id cannot be empty", nil)
 			}
-			if _, err := s.questionSetRepository.FindByID(txCtx, input.QuestionSetID.Value); err != nil {
+			if _, err := s.questionSetRepository.FindByID(txCtx, input.QuestionSetID.Value, nil); err != nil {
 				return helper.BadRequest("invalid_question_set_id", "question set does not exist", err)
 			}
 		}
@@ -148,7 +148,7 @@ func (s *questionService) Update(ctx context.Context, input domain.QuestionUpdat
 		if !input.Choices.Set && !input.TagIDs.Set {
 			updated = current
 		}
-		updated, err = s.questionRepository.FindByID(txCtx, input.ID)
+		updated, err = s.questionRepository.FindByID(txCtx, input.ID, nil)
 		return err
 	})
 	return updated, err
@@ -156,15 +156,15 @@ func (s *questionService) Update(ctx context.Context, input domain.QuestionUpdat
 
 func (s *questionService) Delete(ctx context.Context, id uuid.UUID, actorID string) error {
 	return s.txManager.RunInTx(ctx, func(txCtx context.Context) error {
-		if _, err := s.questionRepository.FindByID(txCtx, id); err != nil {
+		if _, err := s.questionRepository.FindByID(txCtx, id, nil); err != nil {
 			return err
 		}
 		return s.questionRepository.Delete(txCtx, id, actorID)
 	})
 }
 
-func (s *questionService) FindByID(ctx context.Context, id uuid.UUID) (domain.Question, error) {
-	return s.questionRepository.FindByID(ctx, id)
+func (s *questionService) FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.Question, error) {
+	return s.questionRepository.FindByID(ctx, id, includes)
 }
 
 func (s *questionService) FindAll(ctx context.Context, query domain.QuestionQuery) (domain.PageResult[domain.Question], error) {

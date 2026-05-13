@@ -24,12 +24,14 @@ type RepositoryPorts struct {
 	Question       port.QuestionRepository
 	QuestionChoice port.QuestionChoiceRepository
 	Tag            port.TagRepository
+	MediaAsset     port.MediaAssetRepository
 }
 
 type Service struct {
 	User           port.UserService
 	Role           port.RoleService
 	AuthIdentity   port.AuthIdentityService
+	ContentOrder   port.ContentOrderService
 	Section        port.SectionService
 	Lesson         port.LessonService
 	Unit           port.UnitService
@@ -37,6 +39,7 @@ type Service struct {
 	Question       port.QuestionService
 	QuestionChoice port.QuestionChoiceService
 	Tag            port.TagService
+	MediaAsset     port.MediaAssetService
 }
 
 func NewService(deps Dependencies) *Service {
@@ -55,6 +58,7 @@ func NewService(deps Dependencies) *Service {
 		QuestionRepository:       deps.Repositories.Question,
 		QuestionChoiceRepository: deps.Repositories.QuestionChoice,
 		TagRepository:            deps.Repositories.Tag,
+		MediaAssetRepository:     deps.Repositories.MediaAsset,
 		TxManager:                deps.TxManager,
 	})
 
@@ -62,6 +66,7 @@ func NewService(deps Dependencies) *Service {
 		User:           identityServices.User,
 		Role:           identityServices.Role,
 		AuthIdentity:   identityServices.AuthIdentity,
+		ContentOrder:   contentServices.ContentOrder,
 		Section:        contentServices.Section,
 		Lesson:         contentServices.Lesson,
 		Unit:           contentServices.Unit,
@@ -69,5 +74,6 @@ func NewService(deps Dependencies) *Service {
 		Question:       contentServices.Question,
 		QuestionChoice: contentServices.QuestionChoice,
 		Tag:            contentServices.Tag,
+		MediaAsset:     contentServices.MediaAsset,
 	}
 }

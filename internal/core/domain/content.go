@@ -47,6 +47,7 @@ type Lesson struct {
 	Description *string
 	OrderNo     int
 	IsPublished bool
+	Section     *Section
 	AuditFields
 }
 
@@ -78,6 +79,7 @@ type LessonQuery struct {
 	IsPublished *bool
 	SortBy      string
 	SortOrder   string
+	Includes    Includes
 }
 
 type Unit struct {
@@ -88,6 +90,7 @@ type Unit struct {
 	Description *string
 	OrderNo     int
 	IsPublished bool
+	Lesson      *Lesson
 	AuditFields
 }
 
@@ -119,6 +122,7 @@ type UnitQuery struct {
 	IsPublished *bool
 	SortBy      string
 	SortOrder   string
+	Includes    Includes
 }
 
 type QuestionSet struct {
@@ -131,6 +135,8 @@ type QuestionSet struct {
 	EstimatedSeconds *int
 	IsPublished      bool
 	Version          int
+	Unit             *Unit
+	Lesson           *Lesson
 	AuditFields
 }
 
@@ -167,6 +173,7 @@ type QuestionSetQuery struct {
 	Version     *int
 	SortBy      string
 	SortOrder   string
+	Includes    Includes
 }
 
 type Question struct {
@@ -182,6 +189,7 @@ type Question struct {
 	IsActive      bool
 	Choices       []QuestionChoice
 	Tags          []Tag
+	QuestionSet   *QuestionSet
 	AuditFields
 }
 
@@ -217,15 +225,14 @@ type QuestionUpdateInput struct {
 }
 
 type QuestionQuery struct {
-	Paging         Paging
-	QuestionSetID  *uuid.UUID
-	Type           *string
-	IsActive       *bool
-	Search         string
-	SortBy         string
-	SortOrder      string
-	IncludeChoices bool
-	IncludeTags    bool
+	Paging        Paging
+	QuestionSetID *uuid.UUID
+	Type          *string
+	IsActive      *bool
+	Search        string
+	SortBy        string
+	SortOrder     string
+	Includes      Includes
 }
 
 type QuestionChoice struct {
@@ -260,6 +267,14 @@ type QuestionChoiceUpdateInput struct {
 	ActorID     string
 }
 
+type ContentOrderNoSummary struct {
+	Sections     int
+	Lessons      int
+	Units        int
+	QuestionSets int
+	Questions    int
+}
+
 type QuestionChoiceQuery struct {
 	Paging     Paging
 	QuestionID *uuid.UUID
@@ -268,19 +283,22 @@ type QuestionChoiceQuery struct {
 }
 
 type Tag struct {
-	ID   uuid.UUID
-	Name string
+	ID    uuid.UUID
+	Name  string
+	Color string
 	AuditFields
 }
 
 type TagCreateInput struct {
 	Name    string
+	Color   string
 	ActorID string
 }
 
 type TagUpdateInput struct {
 	ID      uuid.UUID
 	Name    EntityField[string]
+	Color   EntityField[string]
 	ActorID string
 }
 

@@ -85,12 +85,13 @@ func (s *roleServiceStub) FindAll(ctx context.Context, query domain.RoleQuery) (
 }
 
 type authIdentityServiceStub struct {
-	createFn            func(ctx context.Context, input domain.AuthIdentityCreateInput) (domain.AuthIdentity, error)
-	updateFn            func(ctx context.Context, input domain.AuthIdentityUpdateInput) (domain.AuthIdentity, error)
-	deleteFn            func(ctx context.Context, id uuid.UUID, actorID string) error
-	findByIDFn          func(ctx context.Context, id uuid.UUID) (domain.AuthIdentity, error)
-	findAllFn           func(ctx context.Context, query domain.AuthIdentityQuery) (domain.PageResult[domain.AuthIdentity], error)
-	loginWithPasswordFn func(ctx context.Context, input domain.PasswordLoginInput) (domain.AuthToken, error)
+	createFn             func(ctx context.Context, input domain.AuthIdentityCreateInput) (domain.AuthIdentity, error)
+	updateFn             func(ctx context.Context, input domain.AuthIdentityUpdateInput) (domain.AuthIdentity, error)
+	deleteFn             func(ctx context.Context, id uuid.UUID, actorID string) error
+	findByIDFn           func(ctx context.Context, id uuid.UUID) (domain.AuthIdentity, error)
+	findAllFn            func(ctx context.Context, query domain.AuthIdentityQuery) (domain.PageResult[domain.AuthIdentity], error)
+	loginWithPasswordFn  func(ctx context.Context, input domain.PasswordLoginInput) (domain.AuthToken, error)
+	refreshAccessTokenFn func(ctx context.Context, input domain.RefreshTokenInput) (domain.AuthToken, error)
 }
 
 func (s *authIdentityServiceStub) Create(ctx context.Context, input domain.AuthIdentityCreateInput) (domain.AuthIdentity, error) {
@@ -115,6 +116,10 @@ func (s *authIdentityServiceStub) FindAll(ctx context.Context, query domain.Auth
 
 func (s *authIdentityServiceStub) LoginWithPassword(ctx context.Context, input domain.PasswordLoginInput) (domain.AuthToken, error) {
 	return s.loginWithPasswordFn(ctx, input)
+}
+
+func (s *authIdentityServiceStub) RefreshAccessToken(ctx context.Context, input domain.RefreshTokenInput) (domain.AuthToken, error) {
+	return s.refreshAccessTokenFn(ctx, input)
 }
 
 func performJSONRequest(t *testing.T, method, target, body string, run func(c echo.Context) error) *httptest.ResponseRecorder {

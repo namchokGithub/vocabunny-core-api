@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/namchokGithub/vocabunny-core-api/internal/constants"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/domain"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/port"
@@ -38,13 +39,13 @@ func (h *QuestionHandler) Create(c echo.Context) error {
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusCreated, toQuestionResponse(item))
+	return helper.RespondSuccess(c, http.StatusCreated, toQuestionResponse(item), constants.CodeCreated)
 }
 
 func (h *QuestionHandler) Update(c echo.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return helper.RespondError(c, helper.BadRequest("invalid_question_id", "question id must be a valid uuid", err))
+		return helper.RespondError(c, helper.BadRequest(constants.CodeInvalidQueryParam, "question id must be a valid uuid", err))
 	}
 	var req UpdateQuestionRequest
 	if err := helper.BindAndValidate(c, &req); err != nil {
@@ -100,32 +101,33 @@ func (h *QuestionHandler) Update(c echo.Context) error {
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusOK, toQuestionResponse(item))
+	return helper.RespondSuccess(c, http.StatusOK, toQuestionResponse(item), constants.CodeUpdated)
 }
 
 func (h *QuestionHandler) Delete(c echo.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return helper.RespondError(c, helper.BadRequest("invalid_question_id", "question id must be a valid uuid", err))
+		return helper.RespondError(c, helper.BadRequest(constants.CodeInvalidQueryParam, "question id must be a valid uuid", err))
 	}
 	if err := h.service.Delete(c.Request().Context(), id, helper.ActorIDFromContext(c)); err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusOK, map[string]string{"id": id.String(), "status": "deleted"})
+	return helper.RespondSuccess(c, http.StatusOK, map[string]string{"id": id.String(), "status": "deleted"}, constants.CodeDeleted)
 }
 func (h *QuestionHandler) FindByID(c echo.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		return helper.RespondError(c, helper.BadRequest("invalid_question_id", "question id must be a valid uuid", err))
+		return helper.RespondError(c, helper.BadRequest(constants.CodeInvalidQueryParam, "question id must be a valid uuid", err))
 	}
-	item, err := h.service.FindByID(c.Request().Context(), id)
+	includes := domain.ParseIncludes(c.QueryParam("include"))
+	item, err := h.service.FindByID(c.Request().Context(), id, includes)
 	if err != nil {
 		return helper.RespondError(c, err)
 	}
-	return helper.RespondSuccess(c, http.StatusOK, toQuestionResponse(item))
+	return helper.RespondSuccess(c, http.StatusOK, toQuestionResponse(item), constants.CodeSuccess)
 }
 func (h *QuestionHandler) FindAll(c echo.Context) error {
-	query := domain.QuestionQuery{Paging: helper.BuildPaging(c), Search: strings.TrimSpace(c.QueryParam("search")), IncludeChoices: !strings.EqualFold(strings.TrimSpace(c.QueryParam("include_choices")), "false"), IncludeTags: !strings.EqualFold(strings.TrimSpace(c.QueryParam("include_tags")), "false")}
+	query := domain.QuestionQuery{Paging: helper.BuildPaging(c), Search: strings.TrimSpace(c.QueryParam("search")), Includes: domain.ParseIncludes(c.QueryParam("include"))}
 	query.SortBy, query.SortOrder = helper.BuildSort(c)
 	if value := strings.TrimSpace(c.QueryParam("question_set_id")); value != "" {
 		parsed, err := parseUUID(value, "question_set_id")
@@ -149,5 +151,5 @@ func (h *QuestionHandler) FindAll(c echo.Context) error {
 	for _, item := range result.Items {
 		items = append(items, toQuestionResponse(item))
 	}
-	return helper.RespondSuccess(c, http.StatusOK, ListResponse[QuestionResponse, domain.QuestionQuery]{Items: items, Paging: PagingResponse{Page: result.Paging.Page, Limit: result.Paging.Limit, Total: result.Paging.Total}, Query: query})
+	return helper.RespondSuccess(c, http.StatusOK, ListResponse[QuestionResponse, domain.QuestionQuery]{Items: items, Paging: helper.NewPagingResponse(result.Paging), Query: query}, constants.CodeSuccess)
 }

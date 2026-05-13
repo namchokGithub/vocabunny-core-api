@@ -1,5 +1,11 @@
 package content
 
+type SectionSummaryDTO struct {
+	ID    string `json:"id"`
+	Slug  string `json:"slug"`
+	Title string `json:"title"`
+}
+
 type CreateSectionRequest struct {
 	Slug        string  `json:"slug" validate:"required,max=255"`
 	Title       string  `json:"title" validate:"required,max=255"`

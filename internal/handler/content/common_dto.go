@@ -1,10 +1,8 @@
 package content
 
-type PagingResponse struct {
-	Page  int   `json:"page"`
-	Limit int   `json:"limit"`
-	Total int64 `json:"total"`
-}
+import "github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
+
+type PagingResponse = helper.PagingResponse
 
 type ListResponse[T any, Q any] struct {
 	Items  []T            `json:"items"`

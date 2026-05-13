@@ -41,7 +41,7 @@ func (s *questionChoiceService) Create(ctx context.Context, input domain.Questio
 	var created domain.QuestionChoice
 	var createErr error
 	err := s.txManager.RunInTx(ctx, func(txCtx context.Context) error {
-		if _, err := s.questionRepository.FindByID(txCtx, input.QuestionID); err != nil {
+		if _, err := s.questionRepository.FindByID(txCtx, input.QuestionID, nil); err != nil {
 			return helper.BadRequest("invalid_question_id", "question does not exist", err)
 		}
 		created, createErr = s.questionChoiceRepository.Create(txCtx, domain.QuestionChoice{

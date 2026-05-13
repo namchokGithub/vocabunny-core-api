@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/namchokGithub/vocabunny-core-api/internal/constants"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/domain"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
 )
@@ -11,7 +12,7 @@ import (
 func parseUUID(value string, field string) (uuid.UUID, error) {
 	parsed, err := uuid.Parse(strings.TrimSpace(value))
 	if err != nil {
-		return uuid.Nil, helper.BadRequest("invalid_"+field, field+" must be a valid uuid", err)
+		return uuid.Nil, helper.BadRequest(constants.CodeInvalidQueryParam, field+" must be a valid uuid", err)
 	}
 
 	return parsed, nil

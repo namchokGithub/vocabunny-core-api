@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/namchokGithub/vocabunny-core-api/internal/constants"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/domain"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/helper"
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/port"
@@ -40,7 +41,7 @@ func (s *unitService) Create(ctx context.Context, input domain.UnitCreateInput) 
 
 	var created domain.Unit
 	err := s.txManager.RunInTx(ctx, func(txCtx context.Context) error {
-		if _, err := s.lessonRepository.FindByID(txCtx, input.LessonID); err != nil {
+		if _, err := s.lessonRepository.FindByID(txCtx, input.LessonID, nil); err != nil {
 			return helper.BadRequest("invalid_lesson_id", "lesson does not exist", err)
 		}
 		exists, err := s.unitRepository.ExistsBySlug(txCtx, input.LessonID, input.Slug, nil)
@@ -48,7 +49,7 @@ func (s *unitService) Create(ctx context.Context, input domain.UnitCreateInput) 
 			return err
 		}
 		if exists {
-			return helper.Conflict("duplicate_unit_slug", "unit slug already exists in this lesson", nil)
+			return helper.Conflict(constants.CodeDuplicateSlug, "unit slug already exists in this lesson", nil)
 		}
 		created, err = s.unitRepository.Create(txCtx, domain.Unit{
 			LessonID:    input.LessonID,
@@ -67,7 +68,7 @@ func (s *unitService) Create(ctx context.Context, input domain.UnitCreateInput) 
 func (s *unitService) Update(ctx context.Context, input domain.UnitUpdateInput) (domain.Unit, error) {
 	var updated domain.Unit
 	err := s.txManager.RunInTx(ctx, func(txCtx context.Context) error {
-		current, err := s.unitRepository.FindByID(txCtx, input.ID)
+		current, err := s.unitRepository.FindByID(txCtx, input.ID, nil)
 		if err != nil {
 			return err
 		}
@@ -77,7 +78,7 @@ func (s *unitService) Update(ctx context.Context, input domain.UnitUpdateInput) 
 			if input.LessonID.Value == uuid.Nil {
 				return helper.BadRequest("invalid_lesson_id", "lesson_id cannot be empty", nil)
 			}
-			if _, err := s.lessonRepository.FindByID(txCtx, input.LessonID.Value); err != nil {
+			if _, err := s.lessonRepository.FindByID(txCtx, input.LessonID.Value, nil); err != nil {
 				return helper.BadRequest("invalid_lesson_id", "lesson does not exist", err)
 			}
 			targetLessonID = input.LessonID.Value
@@ -101,7 +102,7 @@ func (s *unitService) Update(ctx context.Context, input domain.UnitUpdateInput) 
 				return err
 			}
 			if exists {
-				return helper.Conflict("duplicate_unit_slug", "unit slug already exists in this lesson", nil)
+				return helper.Conflict(constants.CodeDuplicateSlug, "unit slug already exists in this lesson", nil)
 			}
 		}
 		updated, err = s.unitRepository.Update(txCtx, input)
@@ -112,15 +113,15 @@ func (s *unitService) Update(ctx context.Context, input domain.UnitUpdateInput) 
 
 func (s *unitService) Delete(ctx context.Context, id uuid.UUID, actorID string) error {
 	return s.txManager.RunInTx(ctx, func(txCtx context.Context) error {
-		if _, err := s.unitRepository.FindByID(txCtx, id); err != nil {
+		if _, err := s.unitRepository.FindByID(txCtx, id, nil); err != nil {
 			return err
 		}
 		return s.unitRepository.Delete(txCtx, id, actorID)
 	})
 }
 
-func (s *unitService) FindByID(ctx context.Context, id uuid.UUID) (domain.Unit, error) {
-	return s.unitRepository.FindByID(ctx, id)
+func (s *unitService) FindByID(ctx context.Context, id uuid.UUID, includes domain.Includes) (domain.Unit, error) {
+	return s.unitRepository.FindByID(ctx, id, includes)
 }
 
 func (s *unitService) FindAll(ctx context.Context, query domain.UnitQuery) (domain.PageResult[domain.Unit], error) {

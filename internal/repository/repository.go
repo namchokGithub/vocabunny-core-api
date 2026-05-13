@@ -4,6 +4,7 @@ import (
 	"github.com/namchokGithub/vocabunny-core-api/internal/core/port"
 	contentrepo "github.com/namchokGithub/vocabunny-core-api/internal/repository/content"
 	identityrepo "github.com/namchokGithub/vocabunny-core-api/internal/repository/identity"
+	mediarepo "github.com/namchokGithub/vocabunny-core-api/internal/repository/media"
 	"gorm.io/gorm"
 )
 
@@ -22,6 +23,7 @@ type Repository struct {
 	Question       port.QuestionRepository
 	QuestionChoice port.QuestionChoiceRepository
 	Tag            port.TagRepository
+	MediaAsset     port.MediaAssetRepository
 }
 
 func NewRepository(deps Dependencies) *Repository {
@@ -29,6 +31,9 @@ func NewRepository(deps Dependencies) *Repository {
 		DB: deps.DB,
 	})
 	contentRepositories := contentrepo.NewRepository(contentrepo.Dependencies{
+		DB: deps.DB,
+	})
+	mediaRepositories := mediarepo.NewRepository(mediarepo.Dependencies{
 		DB: deps.DB,
 	})
 
@@ -43,5 +48,6 @@ func NewRepository(deps Dependencies) *Repository {
 		Question:       contentRepositories.Question,
 		QuestionChoice: contentRepositories.QuestionChoice,
 		Tag:            contentRepositories.Tag,
+		MediaAsset:     mediaRepositories.MediaAsset,
 	}
 }
